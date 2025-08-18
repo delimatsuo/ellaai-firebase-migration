@@ -7,6 +7,19 @@ interface AuthenticatedRequest extends Request {
     role?: string;
     companyId?: string;
     companyAccess?: string[];
+    supportPermissions?: {
+      canActAs: boolean;
+      canModifyRecords: boolean;
+      allowedCompanies?: string[];
+      restrictions?: string[];
+    };
+    supportContext?: {
+      isActingAs: boolean;
+      originalUserId?: string;
+      supportSessionId?: string;
+      targetCompanyId?: string;
+      sessionStartTime?: admin.firestore.Timestamp;
+    };
   };
 }
 
@@ -47,6 +60,15 @@ export const authMiddleware = async (
       role: userData?.role || 'candidate',
       companyId: userData?.companyId,
       companyAccess: userData?.companyAccess || [],
+      supportPermissions: userData?.supportPermissions || {
+        canActAs: userData?.role === 'admin' || userData?.role === 'ella_recruiter',
+        canModifyRecords: userData?.role === 'admin',
+        allowedCompanies: userData?.role === 'admin' ? undefined : userData?.allowedSupportCompanies,
+        restrictions: userData?.supportRestrictions || []
+      },
+      supportContext: {
+        isActingAs: false, // Will be set by supportContextMiddleware
+      }
     };
 
     next();
@@ -131,6 +153,12 @@ export const requireCompanyAccess = (req: AuthenticatedRequest, res: Response, n
   
   // Admin users have access to all companies
   if (req.user.role === 'admin') {
+    next();
+    return;
+  }
+  
+  // Support mode: If user is acting as another company, check support context
+  if (req.user.supportContext?.isActingAs && req.user.supportContext.targetCompanyId === companyId) {
     next();
     return;
   }

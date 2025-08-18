@@ -16,10 +16,13 @@ import { candidateRoutes } from './routes/candidates';
 import { companyRoutes } from './routes/companies';
 import { questionRoutes } from './routes/questions';
 import { skillsRoutes } from './routes/skills';
+import { supportRoutes } from './routes/support';
+import { adminRoutes } from './routes/admin';
 import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimiter';
 import { authMiddleware } from './middleware/auth';
 import { auditMiddleware } from './middleware/audit';
+import { supportContextMiddleware } from './middleware/supportMode';
 
 // Create Express app
 const app = express();
@@ -70,11 +73,13 @@ app.get('/health', (req: express.Request, res: express.Response) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/assessments', authMiddleware, assessmentRoutes);
-app.use('/api/candidates', authMiddleware, candidateRoutes);
-app.use('/api/companies', authMiddleware, companyRoutes);
-app.use('/api/questions', authMiddleware, questionRoutes);
+app.use('/api/assessments', authMiddleware, supportContextMiddleware, assessmentRoutes);
+app.use('/api/candidates', authMiddleware, supportContextMiddleware, candidateRoutes);
+app.use('/api/companies', authMiddleware, supportContextMiddleware, companyRoutes);
+app.use('/api/questions', authMiddleware, supportContextMiddleware, questionRoutes);
 app.use('/api/skills', skillsRoutes);
+app.use('/api/support', authMiddleware, supportContextMiddleware, supportRoutes);
+app.use('/api/admin', authMiddleware, supportContextMiddleware, adminRoutes);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);

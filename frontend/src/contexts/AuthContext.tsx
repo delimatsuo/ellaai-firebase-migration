@@ -20,7 +20,7 @@ export interface UserProfile {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
-  role: 'candidate' | 'recruiter' | 'hiring_manager' | 'admin';
+  role: 'candidate' | 'recruiter' | 'hiring_manager' | 'admin' | 'system_admin';
   companyId?: string;
   companyAccess?: string[];
   emailVerified: boolean;

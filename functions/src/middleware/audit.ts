@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
-import { AuthenticatedRequest } from './auth';
+import { SupportAuthenticatedRequest, logSupportAction } from './supportMode';
 
 interface AuditLogEntry {
   timestamp: admin.firestore.FieldValue;
   userId?: string;
+  userEmail?: string;
   userRole?: string;
   action: string;
   resource: string;
@@ -16,10 +17,21 @@ interface AuditLogEntry {
   statusCode?: number;
   duration?: number;
   details?: any;
+  supportContext?: {
+    isSupportAction: boolean;
+    supportSessionId?: string;
+    ellaRecruiterId?: string;
+    targetCompanyId?: string;
+  };
+  adminContext?: {
+    isAdminAction: boolean;
+    adminActionId?: string;
+    reason?: string;
+  };
 }
 
 export const auditMiddleware = async (
-  req: AuthenticatedRequest,
+  req: SupportAuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -46,7 +58,7 @@ export const auditMiddleware = async (
 };
 
 async function logAuditEntry(
-  req: AuthenticatedRequest,
+  req: SupportAuthenticatedRequest,
   res: Response,
   duration: number,
   responseBody?: any
@@ -64,6 +76,7 @@ async function logAuditEntry(
     const auditEntry: AuditLogEntry = {
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
       userId: req.user?.uid,
+      userEmail: req.user?.email,
       userRole: req.user?.role,
       action: getActionFromRequest(req),
       resource: getResourceFromPath(req.path),
@@ -74,6 +87,8 @@ async function logAuditEntry(
       userAgent: req.get('User-Agent'),
       statusCode: res.statusCode,
       duration,
+      supportContext: getSupportContext(req),
+      adminContext: getAdminContext(req),
     };
     
     // Add additional details for sensitive operations
@@ -86,12 +101,26 @@ async function logAuditEntry(
     }
     
     await db.collection('audit-logs').add(auditEntry);
+
+    // If this is a support action, also log to the support session
+    if (auditEntry.supportContext?.isSupportAction && auditEntry.supportContext.supportSessionId) {
+      await logSupportAction(
+        auditEntry.supportContext.supportSessionId,
+        auditEntry.action,
+        auditEntry.resource,
+        auditEntry.method,
+        auditEntry.path,
+        auditEntry.resourceId,
+        auditEntry.details,
+        auditEntry.statusCode
+      );
+    }
   } catch (error) {
     console.error('Failed to create audit log entry:', error);
   }
 }
 
-function shouldLogRequest(req: AuthenticatedRequest, res: Response): boolean {
+function shouldLogRequest(req: SupportAuthenticatedRequest, res: Response): boolean {
   // Don't log health checks
   if (req.path === '/health') {
     return false;
@@ -116,17 +145,30 @@ function shouldLogRequest(req: AuthenticatedRequest, res: Response): boolean {
   if (isSensitiveResource(req.path)) {
     return true;
   }
+
+  // Always log support actions
+  if (req.supportContext?.isActingAs) {
+    return true;
+  }
+
+  // Always log admin actions
+  if (req.path.includes('/admin/')) {
+    return true;
+  }
   
   return false;
 }
 
-function getActionFromRequest(req: AuthenticatedRequest): string {
+function getActionFromRequest(req: SupportAuthenticatedRequest): string {
   const method = req.method;
   const path = req.path;
   
   if (path.includes('/auth/login')) return 'LOGIN';
   if (path.includes('/auth/logout')) return 'LOGOUT';
   if (path.includes('/auth/verify')) return 'VERIFY_SESSION';
+  if (path.includes('/support/act-as')) return 'START_SUPPORT_SESSION';
+  if (path.includes('/support/end-session')) return 'END_SUPPORT_SESSION';
+  if (path.includes('/admin/modify-record')) return 'ADMIN_MODIFY_RECORD';
   
   switch (method) {
     case 'POST':
@@ -159,7 +201,7 @@ function getResourceFromPath(path: string): string {
   return resourceSegments[0].toUpperCase();
 }
 
-function getResourceId(req: AuthenticatedRequest): string | undefined {
+function getResourceId(req: SupportAuthenticatedRequest): string | undefined {
   // Try to extract ID from URL parameters
   if (req.params.id) return req.params.id;
   if (req.params.assessmentId) return req.params.assessmentId;
@@ -175,12 +217,13 @@ function isSensitiveResource(path: string): boolean {
     '/admin/',
     '/users/',
     '/companies/',
+    '/support/',
   ];
   
   return sensitiveResources.some(resource => path.includes(resource));
 }
 
-function isSensitiveOperation(req: AuthenticatedRequest): boolean {
+function isSensitiveOperation(req: SupportAuthenticatedRequest): boolean {
   const sensitiveOperations = [
     'POST',
     'PUT',
@@ -216,4 +259,37 @@ function getClientIP(req: Request): string {
     req.socket.remoteAddress ||
     'unknown'
   ).split(',')[0].trim();
+}
+
+/**
+ * Get support context from request
+ */
+function getSupportContext(req: SupportAuthenticatedRequest): any {
+  if (!req.supportContext?.isActingAs) {
+    return { isSupportAction: false };
+  }
+
+  return {
+    isSupportAction: true,
+    supportSessionId: req.user?.supportContext?.supportSessionId,
+    ellaRecruiterId: req.user?.supportContext?.originalUserId,
+    targetCompanyId: req.user?.supportContext?.targetCompanyId
+  };
+}
+
+/**
+ * Get admin context from request
+ */
+function getAdminContext(req: SupportAuthenticatedRequest): any {
+  const isAdminPath = req.path.includes('/admin/');
+  
+  if (!isAdminPath) {
+    return { isAdminAction: false };
+  }
+
+  return {
+    isAdminAction: true,
+    // adminActionId will be set later when the action is created
+    reason: req.body?.reason || 'Admin action via API'
+  };
 }

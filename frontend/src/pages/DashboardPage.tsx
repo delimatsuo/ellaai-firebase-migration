@@ -4,166 +4,344 @@ import {
   Container,
   Typography,
   Grid,
-  Paper,
   Button,
-  Card,
-  CardContent,
-  CardActions,
+  styled,
+  alpha,
+  Fab,
 } from '@mui/material';
 import {
   Assessment,
   TrendingUp,
   School,
   Work,
+  People,
+  Speed,
+  CheckCircle,
+  Add,
+  Analytics,
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { colors } from '../theme/theme';
+import StatsCard from '../components/ui/StatsCard';
+import ActivityFeed, { sampleActivities } from '../components/dashboard/ActivityFeed';
+import PerformanceChart from '../components/charts/PerformanceChart';
+import GlassCard from '../components/ui/GlassCard';
+import AssessmentCard, { sampleAssessments } from '../components/assessments/AssessmentCard';
+import CandidateCard, { sampleCandidates } from '../components/candidates/CandidateCard';
+
+const HeroSection = styled(Box)(({ theme }) => ({
+  background: colors.gradient.background,
+  borderRadius: 24,
+  padding: theme.spacing(4),
+  marginBottom: theme.spacing(4),
+  color: 'white',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(10px)',
+  },
+}));
+
+const FloatingActionButton = styled(Fab)(({ theme }) => ({
+  position: 'fixed',
+  bottom: theme.spacing(3),
+  right: theme.spacing(3),
+  background: colors.gradient.primary,
+  color: 'white',
+  zIndex: theme.zIndex.fab,
+  '&:hover': {
+    background: colors.gradient.primary,
+    transform: 'scale(1.1)',
+  },
+}));
+
+const QuickActionCard = styled(motion.div)(({ theme }) => ({
+  padding: theme.spacing(2),
+  borderRadius: 16,
+  background: 'rgba(255, 255, 255, 0.9)',
+  backdropFilter: 'blur(20px)',
+  border: `1px solid ${alpha('#ffffff', 0.3)}`,
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.15)}`,
+  },
+}));
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
 
   const isCandidate = userProfile?.role === 'candidate';
+  const userName = userProfile?.displayName?.split(' ')[0] || 'User';
 
-  const candidateCards = [
+  const candidateStats = [
     {
       title: 'Available Assessments',
-      description: 'Browse and take technical assessments',
-      icon: <Assessment />,
-      action: () => navigate('/assessments'),
-      buttonText: 'View Assessments',
+      value: '12',
+      subtitle: 'Ready to take',
+      icon: <Assessment sx={{ fontSize: 28, color: colors.primary[500] }} />,
+      trend: { value: 3, isPositive: true },
+      gradient: colors.gradient.primary,
     },
     {
-      title: 'My Results',
-      description: 'View your assessment results and performance',
-      icon: <TrendingUp />,
-      action: () => navigate('/assessments?filter=completed'),
-      buttonText: 'View Results',
+      title: 'Completed',
+      value: '8',
+      subtitle: 'This month',
+      icon: <CheckCircle sx={{ fontSize: 28, color: colors.secondary[500] }} />,
+      trend: { value: 12, isPositive: true },
+      gradient: colors.gradient.secondary,
     },
     {
-      title: 'Profile',
-      description: 'Update your profile and preferences',
-      icon: <School />,
-      action: () => navigate('/profile'),
-      buttonText: 'Edit Profile',
+      title: 'Average Score',
+      value: '87%',
+      subtitle: 'All assessments',
+      icon: <TrendingUp sx={{ fontSize: 28, color: '#10B981' }} />,
+      trend: { value: 5, isPositive: true },
+      gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+    },
+    {
+      title: 'Time Saved',
+      value: '24h',
+      subtitle: 'This month',
+      icon: <Speed sx={{ fontSize: 28, color: '#F59E0B' }} />,
+      trend: { value: 8, isPositive: true },
+      gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
     },
   ];
 
-  const companyCards = [
+  const companyStats = [
     {
-      title: 'Company Dashboard',
-      description: 'View company overview and metrics',
-      icon: <Work />,
-      action: () => navigate('/company'),
-      buttonText: 'Go to Dashboard',
+      title: 'Total Assessments',
+      value: '45',
+      subtitle: 'Active assessments',
+      icon: <Assessment sx={{ fontSize: 28, color: colors.primary[500] }} />,
+      trend: { value: 8, isPositive: true },
+      gradient: colors.gradient.primary,
     },
     {
-      title: 'Create Assessment',
-      description: 'Create new technical assessments',
-      icon: <Assessment />,
-      action: () => navigate('/company/assessments/create'),
-      buttonText: 'Create Assessment',
+      title: 'Candidates',
+      value: '238',
+      subtitle: 'This month',
+      icon: <People sx={{ fontSize: 28, color: colors.secondary[500] }} />,
+      trend: { value: 15, isPositive: true },
+      gradient: colors.gradient.secondary,
     },
     {
-      title: 'Manage Candidates',
-      description: 'View and manage candidate applications',
-      icon: <School />,
-      action: () => navigate('/company/candidates'),
-      buttonText: 'View Candidates',
+      title: 'Completion Rate',
+      value: '92%',
+      subtitle: 'Average rate',
+      icon: <TrendingUp sx={{ fontSize: 28, color: '#10B981' }} />,
+      trend: { value: 3, isPositive: true },
+      gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+    },
+    {
+      title: 'Time Efficiency',
+      value: '67%',
+      subtitle: 'Faster hiring',
+      icon: <Speed sx={{ fontSize: 28, color: '#F59E0B' }} />,
+      trend: { value: 12, isPositive: true },
+      gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
     },
   ];
 
-  const cards = isCandidate ? candidateCards : companyCards;
+  const stats = isCandidate ? candidateStats : companyStats;
+
+  const quickActions = isCandidate
+    ? [
+        {
+          title: 'Take Assessment',
+          icon: <Assessment />,
+          action: () => navigate('/assessments'),
+          color: colors.primary[500],
+        },
+        {
+          title: 'View Results',
+          icon: <Analytics />,
+          action: () => navigate('/assessments?filter=completed'),
+          color: colors.secondary[500],
+        },
+      ]
+    : [
+        {
+          title: 'Create Assessment',
+          icon: <Add />,
+          action: () => navigate('/company/assessments/create'),
+          color: colors.primary[500],
+        },
+        {
+          title: 'View Candidates',
+          icon: <People />,
+          action: () => navigate('/company/candidates'),
+          color: colors.secondary[500],
+        },
+      ];
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Welcome back, {userProfile?.displayName || 'User'}!
-        </Typography>
-        
-        <Typography variant="h6" color="text.secondary" gutterBottom>
-          {isCandidate 
-            ? 'Ready to take on your next technical challenge?' 
-            : 'Manage your assessments and candidates'}
-        </Typography>
+    <Container maxWidth="xl">
+      {/* Hero Section */}
+      <HeroSection>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, position: 'relative', zIndex: 1 }}>
+            Welcome back, {userName}! 👋
+          </Typography>
+          <Typography variant="h6" sx={{ mb: 3, opacity: 0.9, position: 'relative', zIndex: 1 }}>
+            {isCandidate 
+              ? 'Ready to showcase your skills with our next-generation assessments?' 
+              : 'Streamline your hiring process with intelligent assessments'}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, position: 'relative', zIndex: 1 }}>
+            {quickActions.map((action, index) => (
+              <motion.div
+                key={action.title}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+              >
+                <Button
+                  variant="contained"
+                  startIcon={action.icon}
+                  onClick={action.action}
+                  sx={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                      transform: 'translateY(-2px)',
+                    },
+                  }}
+                >
+                  {action.title}
+                </Button>
+              </motion.div>
+            ))}
+          </Box>
+        </motion.div>
+      </HeroSection>
 
-        <Grid container spacing={3} sx={{ mt: 3 }}>
-          {cards.map((card, index) => (
-            <Grid item xs={12} md={4} key={index}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Box sx={{ color: 'primary.main', mr: 1 }}>
-                      {card.icon}
-                    </Box>
-                    <Typography variant="h6" component="h2">
-                      {card.title}
-                    </Typography>
-                  </Box>
-                  <Typography color="text.secondary">
-                    {card.description}
-                  </Typography>
-                </CardContent>
-                <CardActions>
-                  <Button size="small" onClick={card.action} variant="contained">
-                    {card.buttonText}
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
+      {/* Stats Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {stats.map((stat, index) => (
+          <Grid item xs={12} sm={6} lg={3} key={stat.title}>
+            <StatsCard
+              title={stat.title}
+              value={stat.value}
+              subtitle={stat.subtitle}
+              icon={stat.icon}
+              trend={stat.trend}
+              gradient={stat.gradient}
+              delay={index * 0.1}
+            />
+          </Grid>
+        ))}
+      </Grid>
+
+      <Grid container spacing={3}>
+        {/* Performance Chart */}
+        <Grid item xs={12} lg={8}>
+          <PerformanceChart
+            title={isCandidate ? 'Your Performance Trends' : 'Assessment Analytics'}
+            height={320}
+          />
         </Grid>
 
-        {/* Quick Stats */}
-        <Box sx={{ mt: 6 }}>
-          <Typography variant="h5" gutterBottom>
-            Quick Stats
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h4" color="primary">
-                  {isCandidate ? '12' : '45'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {isCandidate ? 'Assessments Available' : 'Total Assessments'}
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h4" color="primary">
-                  {isCandidate ? '3' : '128'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {isCandidate ? 'Completed' : 'Total Candidates'}
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h4" color="primary">
-                  {isCandidate ? '85%' : '92%'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {isCandidate ? 'Average Score' : 'Completion Rate'}
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h4" color="primary">
-                  {isCandidate ? '7' : '23'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {isCandidate ? 'Days Active' : 'Active This Month'}
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Box>
-      </Box>
+        {/* Activity Feed */}
+        <Grid item xs={12} lg={4}>
+          <ActivityFeed activities={sampleActivities} maxItems={8} />
+        </Grid>
+
+        {/* Recent Assessments or Candidates */}
+        <Grid item xs={12}>
+          <GlassCard variant="light" animate={false}>
+            <Box sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                {isCandidate ? 'Available Assessments' : 'Recent Candidates'}
+              </Typography>
+              
+              <Grid container spacing={3}>
+                {isCandidate ? (
+                  sampleAssessments.slice(0, 3).map((assessment, index) => (
+                    <Grid item xs={12} md={4} key={assessment.id}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <AssessmentCard
+                          assessment={assessment}
+                          variant="candidate"
+                          onStart={(assessment) => {
+                            console.log('Starting assessment:', assessment.title);
+                            navigate('/assessments');
+                          }}
+                        />
+                      </motion.div>
+                    </Grid>
+                  ))
+                ) : (
+                  sampleCandidates.slice(0, 3).map((candidate, index) => (
+                    <Grid item xs={12} md={4} key={candidate.id}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <CandidateCard
+                          candidate={candidate}
+                          variant="compact"
+                          onViewProfile={(candidate) => {
+                            console.log('Viewing profile:', candidate.name);
+                            navigate('/company/candidates');
+                          }}
+                          onSendEmail={(candidate) => {
+                            console.log('Sending email to:', candidate.email);
+                          }}
+                          onScheduleInterview={(candidate) => {
+                            console.log('Scheduling interview with:', candidate.name);
+                          }}
+                        />
+                      </motion.div>
+                    </Grid>
+                  ))
+                )}
+              </Grid>
+
+              <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate(isCandidate ? '/assessments' : '/company/candidates')}
+                  sx={{ borderRadius: 3 }}
+                >
+                  {isCandidate ? 'View All Assessments' : 'View All Candidates'}
+                </Button>
+              </Box>
+            </Box>
+          </GlassCard>
+        </Grid>
+      </Grid>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        onClick={() => navigate(isCandidate ? '/assessments' : '/company/assessments/create')}
+      >
+        <Add />
+      </FloatingActionButton>
     </Container>
   );
 };

@@ -104,7 +104,9 @@ const AssessmentTakePage: React.FC = () => {
             id: '2',
             type: 'coding',
             question: 'Write a function that returns the sum of two numbers:',
-            code: 'function addNumbers(a, b) {\n  // Your code here\n}',
+            code: `function addNumbers(a, b) {
+  // Your code here
+}`,
             language: 'javascript'
           },
           {

@@ -1,32 +1,50 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper function to check if user is acting as a specific company via support session
+    function isActingAsCompany(companyId) {
+      return exists(/databases/$(database)/documents/support-sessions/$(getActiveSupportSession())) &&
+             get(/databases/$(database)/documents/support-sessions/$(getActiveSupportSession())).data.targetCompanyId == companyId &&
+             get(/databases/$(database)/documents/support-sessions/$(getActiveSupportSession())).data.status == 'active';
+    }
+    
+    // Helper function to get active support session ID for current user
+    function getActiveSupportSession() {
+      // This is a simplified approach - in practice, you might need to implement
+      // this differently based on your session management strategy
+      return request.auth.uid + '_support_session';
+    }
     // Users can read and write their own user document
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null;
     }
     
-    // Companies: Only authenticated users with proper role can access
+    // Companies: Only authenticated users with proper role can access (includes support mode)
     match /companies/{companyId} {
       allow read: if request.auth != null && 
         (resource.data.members[request.auth.uid] != null ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         isActingAsCompany(companyId));
       allow write: if request.auth != null && 
         (resource.data.admins[request.auth.uid] == true ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         isActingAsCompany(companyId));
     }
     
-    // Assessments: Multi-tenant access control
+    // Assessments: Multi-tenant access control with support mode
     match /assessments/{assessmentId} {
       allow read: if request.auth != null && 
         (resource.data.candidateId == request.auth.uid ||
          resource.data.companyId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter']);
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter'] ||
+         isActingAsCompany(resource.data.companyId));
       allow write: if request.auth != null && 
         (resource.data.candidateId == request.auth.uid ||
          resource.data.companyId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter']);
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter'] ||
+         isActingAsCompany(resource.data.companyId));
       allow create: if request.auth != null;
     }
     
@@ -68,6 +86,29 @@ service cloud.firestore {
       allow read: if request.auth != null && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
       allow create: if request.auth != null;
+    }
+    
+    // Support sessions: Admin and Ella recruiters only
+    match /support-sessions/{sessionId} {
+      allow read: if request.auth != null && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'ella_recruiter'] ||
+         resource.data.ellaRecruiterId == request.auth.uid);
+      allow create: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'ella_recruiter'];
+      allow update: if request.auth != null && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         resource.data.ellaRecruiterId == request.auth.uid);
+      allow delete: if false; // Support sessions should never be deleted
+    }
+    
+    // Admin actions: Admin only, no modification allowed
+    match /admin-actions/{actionId} {
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow create: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow update: if false; // Admin actions are immutable
+      allow delete: if false; // Admin actions should never be deleted
     }
     
     // Default deny rule

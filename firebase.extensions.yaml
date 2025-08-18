@@ -1,0 +1,11 @@
+extensions:
+  - name: firestore-send-email
+    publisher: firebase
+    version: 0.2.4
+    params:
+      EMAIL_COLLECTION: mail
+      SMTP_CONNECTION_URI: smtps://smtp.gmail.com:465
+      DEFAULT_FROM: noreply@ellatechtalent.com
+      DEFAULT_REPLY_TO: support@ellatechtalent.com
+      USERS_COLLECTION: users
+      TEMPLATES_COLLECTION: email_templates

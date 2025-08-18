@@ -98,8 +98,12 @@ const AssessmentResultsPage: React.FC = () => {
             id: '2',
             question: 'Write a function that returns the sum of two numbers',
             type: 'coding',
-            userAnswer: 'function addNumbers(a, b) {\n  return a + b;\n}',
-            correctAnswer: 'function addNumbers(a, b) {\n  return a + b;\n}',
+            userAnswer: `function addNumbers(a, b) {
+  return a + b;
+}`,
+            correctAnswer: `function addNumbers(a, b) {
+  return a + b;
+}`,
             isCorrect: true,
             points: 15,
             maxPoints: 15,
