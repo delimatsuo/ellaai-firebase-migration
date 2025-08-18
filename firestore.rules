@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read and write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+    
+    // Companies: Only authenticated users with proper role can access
+    match /companies/{companyId} {
+      allow read: if request.auth != null && 
+        (resource.data.members[request.auth.uid] != null ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow write: if request.auth != null && 
+        (resource.data.admins[request.auth.uid] == true ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+    
+    // Assessments: Multi-tenant access control
+    match /assessments/{assessmentId} {
+      allow read: if request.auth != null && 
+        (resource.data.candidateId == request.auth.uid ||
+         resource.data.companyId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter']);
+      allow write: if request.auth != null && 
+        (resource.data.candidateId == request.auth.uid ||
+         resource.data.companyId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter']);
+      allow create: if request.auth != null;
+    }
+    
+    // Assessment attempts: Candidates can create and update their attempts
+    match /assessment-attempts/{attemptId} {
+      allow read: if request.auth != null && 
+        (resource.data.candidateId == request.auth.uid ||
+         get(/databases/$(database)/documents/assessments/$(resource.data.assessmentId)).data.companyId in 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess);
+      allow create: if request.auth != null && request.resource.data.candidateId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.candidateId == request.auth.uid;
+    }
+    
+    // Questions: Read access for assessment participants
+    match /questions/{questionId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter'];
+    }
+    
+    // Skills taxonomy: Read-only for authenticated users
+    match /skills/{skillId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Positions/Jobs: Company-scoped access
+    match /positions/{positionId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        (resource.data.companyId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if request.auth != null;
+    }
+    
+    // Audit logs: Admin only
+    match /audit-logs/{logId} {
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow create: if request.auth != null;
+    }
+    
+    // Default deny rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

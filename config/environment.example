@@ -1,0 +1,53 @@
+# EllaAI Platform Environment Configuration
+# Copy this file to .env.local and fill in your values
+
+# Firebase Admin SDK Configuration
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n"
+FIREBASE_DATABASE_URL=https://your-project-default-rtdb.firebaseio.com/
+
+# Next.js Configuration
+NEXTAUTH_SECRET=your-super-secret-jwt-secret-key-here
+NEXTAUTH_URL=http://localhost:3000
+
+# Security Configuration
+CSRF_SECRET_KEY=your-csrf-secret-key-32-chars-long
+SECURITY_SALT=your-security-salt-for-hashing
+
+# Database Configuration (if using additional databases)
+DATABASE_URL=postgresql://username:password@localhost:5432/ellaai
+
+# Email Configuration (for notifications)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+
+# Third-party API Keys
+OPENAI_API_KEY=sk-your-openai-api-key
+STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
+STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
+
+# Logging and Monitoring
+LOG_LEVEL=info
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+
+# Rate Limiting (Redis configuration for production)
+REDIS_URL=redis://localhost:6379
+REDIS_PASSWORD=your-redis-password
+
+# Application Configuration
+NODE_ENV=development
+PORT=3000
+ALLOWED_ORIGINS=http://localhost:3000,https://your-domain.com
+
+# Security Headers Configuration
+SECURITY_HEADERS_STRICT=true
+ENABLE_CSRF_PROTECTION=true
+ENABLE_RATE_LIMITING=true
+
+# Feature Flags
+FEATURE_AUDIT_LOGGING=true
+FEATURE_ADVANCED_SECURITY=true
+FEATURE_PERFORMANCE_MONITORING=true

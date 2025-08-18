@@ -1,0 +1,206 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Security functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+    
+    function isRecruiter() {
+      return isAuthenticated() && getUserData().role in ['admin', 'recruiter'];
+    }
+    
+    function isCompanyAdmin() {
+      return isAuthenticated() && getUserData().role in ['admin', 'company_admin'];
+    }
+    
+    function hasCompanyAccess(companyId) {
+      return isAdmin() || 
+             getUserData().companyId == companyId ||
+             (getUserData().companyAccess != null && companyId in getUserData().companyAccess);
+    }
+    
+    function isOwnerOrAdmin(ownerId) {
+      return isAuthenticated() && (request.auth.uid == ownerId || isAdmin());
+    }
+    
+    function validateUserData(data) {
+      return data.keys().hasAll(['email', 'role']) &&
+             data.role in ['admin', 'recruiter', 'candidate', 'company_admin'] &&
+             data.email.matches('.*@.*\\..*');
+    }
+    
+    function validateCompanyData(data) {
+      return data.keys().hasAll(['name', 'adminId']) &&
+             data.name.size() > 0 &&
+             data.name.size() <= 100;
+    }
+    
+    function validateAssessmentData(data) {
+      return data.keys().hasAll(['title', 'companyId', 'createdBy']) &&
+             data.title.size() > 0 &&
+             data.title.size() <= 200;
+    }
+    
+    // Users collection - self-access and admin access
+    match /users/{userId} {
+      allow read: if isOwnerOrAdmin(userId);
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == userId &&
+                       validateUserData(request.resource.data) &&
+                       request.resource.data.role == 'candidate'; // New users default to candidate
+      allow update: if isOwnerOrAdmin(userId) &&
+                       validateUserData(request.resource.data) &&
+                       // Prevent role escalation unless admin
+                       (isAdmin() || request.resource.data.role == resource.data.role);
+      allow delete: if isAdmin();
+    }
+    
+    // Companies collection - company access and admin access
+    match /companies/{companyId} {
+      allow read: if hasCompanyAccess(companyId);
+      allow create: if isAuthenticated() && 
+                       validateCompanyData(request.resource.data) &&
+                       (isAdmin() || request.resource.data.adminId == request.auth.uid);
+      allow update: if hasCompanyAccess(companyId) &&
+                       validateCompanyData(request.resource.data) &&
+                       // Protect admin changes
+                       (isAdmin() || 
+                        request.resource.data.adminId == resource.data.adminId);
+      allow delete: if isAdmin();
+    }
+    
+    // Assessments collection - company scoped access
+    match /assessments/{assessmentId} {
+      allow read: if isAuthenticated() && (
+        resource.data.candidateId == request.auth.uid ||
+        hasCompanyAccess(resource.data.companyId) ||
+        isRecruiter()
+      );
+      allow create: if isAuthenticated() && 
+                       validateAssessmentData(request.resource.data) &&
+                       hasCompanyAccess(request.resource.data.companyId) &&
+                       request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                       validateAssessmentData(request.resource.data) &&
+                       hasCompanyAccess(resource.data.companyId) &&
+                       (resource.data.createdBy == request.auth.uid || isAdmin());
+      allow delete: if isAdmin() || 
+                       (hasCompanyAccess(resource.data.companyId) && 
+                        resource.data.createdBy == request.auth.uid);
+    }
+    
+    // Assessment attempts - candidate and company access
+    match /assessment-attempts/{attemptId} {
+      allow read: if isAuthenticated() && (
+        resource.data.candidateId == request.auth.uid ||
+        hasCompanyAccess(get(/databases/$(database)/documents/assessments/$(resource.data.assessmentId)).data.companyId)
+      );
+      allow create: if isAuthenticated() && 
+                       request.resource.data.candidateId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['candidateId', 'assessmentId', 'startedAt']);
+      allow update: if isAuthenticated() && 
+                       resource.data.candidateId == request.auth.uid &&
+                       // Prevent changing core fields after creation
+                       request.resource.data.candidateId == resource.data.candidateId &&
+                       request.resource.data.assessmentId == resource.data.assessmentId;
+      allow delete: if isAdmin();
+    }
+    
+    // Questions collection - recruiter and admin access
+    match /questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow create: if isRecruiter() &&
+                       request.resource.data.keys().hasAll(['title', 'type', 'createdBy']) &&
+                       request.resource.data.createdBy == request.auth.uid;
+      allow update: if isRecruiter() &&
+                       (resource.data.createdBy == request.auth.uid || isAdmin());
+      allow delete: if isAdmin() || 
+                       (isRecruiter() && resource.data.createdBy == request.auth.uid);
+    }
+    
+    // Skills taxonomy - admin write, authenticated read
+    match /skills/{skillId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() &&
+                      request.resource.data.keys().hasAll(['name', 'category']);
+    }
+    
+    // Positions/Jobs - company scoped access
+    match /positions/{positionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+                       hasCompanyAccess(request.resource.data.companyId) &&
+                       request.resource.data.keys().hasAll(['title', 'companyId', 'createdBy']);
+      allow update: if isAuthenticated() && 
+                       hasCompanyAccess(resource.data.companyId) &&
+                       (resource.data.createdBy == request.auth.uid || isCompanyAdmin());
+      allow delete: if isAdmin() || 
+                       (hasCompanyAccess(resource.data.companyId) && 
+                        resource.data.createdBy == request.auth.uid);
+    }
+    
+    // Audit logs - admin only read/write, system can create
+    match /audit-logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if true; // Allow system to create audit logs
+      allow update, delete: if false; // Audit logs are immutable
+    }
+    
+    // Security audit logs - admin only
+    match /security-audit-logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if true; // Allow system to create security logs
+      allow update, delete: if false; // Security logs are immutable
+    }
+    
+    // Company invitations - company admin access
+    match /company-invitations/{inviteId} {
+      allow read: if isAuthenticated() && (
+        resource.data.email == request.auth.token.email ||
+        hasCompanyAccess(resource.data.companyId)
+      );
+      allow create: if isAuthenticated() && 
+                       hasCompanyAccess(request.resource.data.companyId) &&
+                       request.resource.data.keys().hasAll(['email', 'companyId', 'invitedBy']);
+      allow update: if isAuthenticated() && 
+                       (resource.data.email == request.auth.token.email || 
+                        hasCompanyAccess(resource.data.companyId));
+      allow delete: if isAdmin() || hasCompanyAccess(resource.data.companyId);
+    }
+    
+    // User sessions - self access only
+    match /user-sessions/{sessionId} {
+      allow read, write: if isAuthenticated() && 
+                           resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                       request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Rate limiting data - system only
+    match /rate-limits/{limitId} {
+      allow read, write: if false; // No client access
+    }
+    
+    // System configuration - admin only
+    match /system-config/{configId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() && 
+                      request.resource.data.keys().hasAll(['updatedBy', 'updatedAt']);
+    }
+    
+    // Default deny rule - explicit deny for any unmatched paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

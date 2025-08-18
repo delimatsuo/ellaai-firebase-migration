@@ -1,0 +1,33 @@
+{
+  "name": "ellaai-firebase-migration",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../functions && npm install",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:functions\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:functions": "cd functions && npm run build:watch",
+    "build": "npm run build:frontend && npm run build:functions",
+    "build:frontend": "cd frontend && npm run build",
+    "build:functions": "cd functions && npm run build",
+    "deploy": "npm run build && firebase deploy",
+    "deploy:hosting": "npm run build:frontend && firebase deploy --only hosting",
+    "deploy:functions": "npm run build:functions && firebase deploy --only functions",
+    "serve:emulators": "firebase emulators:start",
+    "serve:hosting": "firebase emulators:start --only hosting",
+    "serve:functions": "firebase emulators:start --only functions",
+    "test": "cd frontend && npm run test && cd ../functions && npm run test",
+    "lint": "cd frontend && npm run lint && cd ../functions && npm run lint",
+    "setup:dev": "chmod +x scripts/setup-development.sh && ./scripts/setup-development.sh",
+    "setup:prod": "chmod +x scripts/setup-production.sh && ./scripts/setup-production.sh",
+    "migrate:data": "node scripts/migrate-data.js",
+    "seed:data": "node scripts/seed-data.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "firebase-tools": "^12.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
