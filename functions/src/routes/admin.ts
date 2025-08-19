@@ -14,6 +14,7 @@ import { AppError } from '../utils/errors';
 import { requireRole } from '../middleware/auth';
 import { companyWizardRoutes } from './admin/companyWizard';
 import { companyLifecycleRoutes } from './admin/companyLifecycle';
+import { adminUserManagementRoutes } from './admin/userManagement';
 
 const router = Router();
 const db = admin.firestore();
@@ -23,6 +24,9 @@ router.use('/companies/wizard', companyWizardRoutes);
 
 // Mount company lifecycle management routes
 router.use('/companies', companyLifecycleRoutes);
+
+// Mount user management routes
+router.use('/users', adminUserManagementRoutes);
 
 /**
  * POST /api/admin/modify-record

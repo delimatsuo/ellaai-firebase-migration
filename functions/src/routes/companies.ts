@@ -5,8 +5,12 @@ import * as joi from 'joi';
 import { AuthenticatedRequest, requireRole, requireCompanyAccess } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { AppError } from '../utils/errors';
+import { companyUserManagementRoutes } from './companies/userManagement';
 
 const router = Router();
+
+// Mount user management routes for companies
+router.use('/:companyId/users', companyUserManagementRoutes);
 
 const createCompanySchema = joi.object({
   name: joi.string().required().min(1).max(200),

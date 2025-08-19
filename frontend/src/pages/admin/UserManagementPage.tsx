@@ -18,10 +18,6 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   FormControl,
   InputLabel,
   Select,
@@ -30,6 +26,20 @@ import {
   Tooltip,
   Alert,
   TablePagination,
+  Checkbox,
+  Fab,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Switch,
+  FormControlLabel,
+  Badge,
+  LinearProgress,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -42,43 +52,132 @@ import {
   Visibility as ViewIcon,
   Download as DownloadIcon,
   FilterList as FilterIcon,
+  Email as EmailIcon,
+  CloudUpload as UploadIcon,
+  GroupWork as BulkIcon,
+  Dashboard as StatsIcon,
+  Refresh as RefreshIcon,
+  ExpandMore as ExpandMoreIcon,
+  Close as CloseIcon,
+  Tune as TuneIcon,
+  SelectAll as SelectAllIcon,
+  Clear as ClearIcon,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
 } from '@mui/icons-material';
 import { UserProfile } from '../../types/admin';
 import ImpersonationModal from '../../components/admin/ImpersonationModal';
+import {
+  UserInvitationDialog,
+  BulkUserOperations,
+  UserProfileDialog,
+  CSVImportDialog,
+} from '../../components/users';
+import userService, {
+  UserFilters,
+  PaginationParams,
+  BulkUserOperation,
+  UpdateUserRequest,
+} from '../../services/users/userService';
 import toast from 'react-hot-toast';
 
 const UserManagementPage: React.FC = () => {
+  // Data state
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-  const [showImpersonationModal, setShowImpersonationModal] = useState(false);
-  const [showUserDialog, setShowUserDialog] = useState(false);
-  const [dialogMode, setDialogMode] = useState<'view' | 'edit' | 'create'>('view');
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Filters and pagination
+  const [filters, setFilters] = useState<UserFilters>({
+    search: '',
+    role: 'all',
+    status: 'all',
+  });
+  const [pagination, setPagination] = useState<PaginationParams>({
+    page: 0,
+    limit: 25,
+    sortBy: 'createdAt',
+    sortDirection: 'desc',
+  });
+  
+  // Dialog states
+  const [showImpersonationModal, setShowImpersonationModal] = useState(false);
+  const [showUserProfileDialog, setShowUserProfileDialog] = useState(false);
+  const [showInvitationDialog, setShowInvitationDialog] = useState(false);
+  const [showBulkOperationsDialog, setShowBulkOperationsDialog] = useState(false);
+  const [showCSVImportDialog, setShowCSVImportDialog] = useState(false);
+  
+  // UI state
+  const [showFilters, setShowFilters] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  
+  // Stats
+  const [userStats, setUserStats] = useState<{
+    total: number;
+    active: number;
+    suspended: number;
+    byRole: Record<string, number>;
+    byCompany: Record<string, number>;
+    recentSignUps: number;
+    recentActivity: number;
+  }>({
+    total: 0,
+    active: 0,
+    suspended: 0,
+    byRole: {},
+    byCompany: {},
+    recentSignUps: 0,
+    recentActivity: 0,
+  });
+  
+  // Mock companies data - replace with actual API call
+  const [companies] = useState([
+    { id: 'company_1', name: 'TechCorp Inc.' },
+    { id: 'company_2', name: 'StartupXYZ' },
+    { id: 'company_3', name: 'Enterprise Solutions' },
+  ]);
 
-  const roles = ['candidate', 'recruiter', 'hiring_manager', 'admin', 'system_admin'];
-  const statuses = ['active', 'suspended', 'inactive'];
+  const roles = [
+    { value: 'candidate', label: 'Candidate', color: '#4caf50' },
+    { value: 'recruiter', label: 'Recruiter', color: '#2196f3' },
+    { value: 'hiring_manager', label: 'Hiring Manager', color: '#ff9800' },
+    { value: 'admin', label: 'Company Admin', color: '#f44336' },
+    { value: 'system_admin', label: 'System Admin', color: '#9c27b0' },
+  ];
+  const statuses = [
+    { value: 'active', label: 'Active' },
+    { value: 'suspended', label: 'Suspended' },
+    { value: 'inactive', label: 'Inactive' },
+  ];
 
   useEffect(() => {
     loadUsers();
+    loadUserStats();
   }, []);
 
   useEffect(() => {
-    filterUsers();
-  }, [users, searchTerm, roleFilter, statusFilter]);
+    loadUsers();
+  }, [filters, pagination]);
 
   const loadUsers = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await userService.getUsers(filters, pagination);
+      setUsers(response.users);
+      setTotalUsers(response.pagination.total);
       
+      // Clear selection when data changes
+      setSelectedUsers(new Set());
+    } catch (error: any) {
+      console.error('Failed to load users:', error);
+      toast.error(error.message || 'Failed to load users');
+      
+      // Fallback to mock data for demo
       const mockUsers: UserProfile[] = [
         {
           uid: 'user_1',
@@ -126,41 +225,79 @@ const UserManagementPage: React.FC = () => {
           isActive: true,
         },
       ];
-
       setUsers(mockUsers);
-    } catch (error) {
-      console.error('Failed to load users:', error);
-      toast.error('Failed to load users');
+      setTotalUsers(mockUsers.length);
     } finally {
       setLoading(false);
     }
   };
 
-  const filterUsers = () => {
-    let filtered = users;
-
-    if (searchTerm) {
-      filtered = filtered.filter(user => 
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.uid.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter(user => user.role === roleFilter);
-    }
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(user => {
-        if (statusFilter === 'active') return user.isActive;
-        if (statusFilter === 'suspended') return !user.isActive && user.suspendedAt;
-        if (statusFilter === 'inactive') return !user.isActive && !user.suspendedAt;
-        return true;
+  const loadUserStats = async () => {
+    try {
+      const stats = await userService.getUserStats(filters);
+      setUserStats(stats);
+    } catch (error: any) {
+      console.error('Failed to load user stats:', error);
+      // Use mock stats for demo
+      setUserStats({
+        total: users.length,
+        active: users.filter(u => u.isActive).length,
+        suspended: users.filter(u => !u.isActive && u.suspendedAt).length,
+        byRole: {
+          candidate: users.filter(u => u.role === 'candidate').length,
+          recruiter: users.filter(u => u.role === 'recruiter').length,
+          hiring_manager: users.filter(u => u.role === 'hiring_manager').length,
+          admin: users.filter(u => u.role === 'admin').length,
+          system_admin: users.filter(u => u.role === 'system_admin').length,
+        },
+        byCompany: {
+          company_1: users.filter(u => u.companyId === 'company_1').length,
+          company_2: users.filter(u => u.companyId === 'company_2').length,
+          company_3: users.filter(u => u.companyId === 'company_3').length,
+        },
+        recentSignUps: 5,
+        recentActivity: 12,
       });
     }
+  };
 
-    setFilteredUsers(filtered);
+  const refreshData = async () => {
+    setRefreshing(true);
+    await Promise.all([loadUsers(), loadUserStats()]);
+    setRefreshing(false);
+    toast.success('Data refreshed');
+  };
+
+  const handleFilterChange = (field: keyof UserFilters, value: any) => {
+    const newFilters = { ...filters, [field]: value };
+    setFilters(newFilters);
+    setPagination(prev => ({ ...prev, page: 0 })); // Reset to first page
+  };
+
+  const handlePaginationChange = (field: keyof PaginationParams, value: any) => {
+    setPagination(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSelectUser = (userId: string, selected: boolean) => {
+    const newSelected = new Set(selectedUsers);
+    if (selected) {
+      newSelected.add(userId);
+    } else {
+      newSelected.delete(userId);
+    }
+    setSelectedUsers(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedUsers.size === users.length) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(users.map(u => u.uid)));
+    }
+  };
+
+  const getSelectedUserProfiles = (): UserProfile[] => {
+    return users.filter(user => selectedUsers.has(user.uid));
   };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, user: UserProfile) => {
@@ -468,7 +605,7 @@ const UserManagementPage: React.FC = () => {
           <ViewIcon sx={{ mr: 1 }} />
           View Details
         </MenuItem>
-        <MenuItem onClick={() => handleEditUser(selectedUser!)}>
+        <MenuItem onClick={() => handleViewUser(selectedUser!)}>
           <EditIcon sx={{ mr: 1 }} />
           Edit User
         </MenuItem>
@@ -481,7 +618,7 @@ const UserManagementPage: React.FC = () => {
         </MenuItem>
         {selectedUser?.isActive ? (
           <MenuItem 
-            onClick={() => handleSuspendUser(selectedUser!)}
+            onClick={() => handleSuspendUserFromMenu(selectedUser!)}
             sx={{ color: '#f44336' }}
           >
             <BlockIcon sx={{ mr: 1 }} />
@@ -489,112 +626,88 @@ const UserManagementPage: React.FC = () => {
           </MenuItem>
         ) : (
           <MenuItem 
-            onClick={() => handleUnsuspendUser(selectedUser!)}
+            onClick={() => handleUnsuspendUserFromMenu(selectedUser!)}
             sx={{ color: '#4caf50' }}
           >
             <UnblockIcon sx={{ mr: 1 }} />
-            Unsuspend User
+            Reactivate User
           </MenuItem>
         )}
       </Menu>
 
-      {/* User Details/Edit Dialog */}
-      <Dialog 
-        open={showUserDialog} 
-        onClose={() => setShowUserDialog(false)}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{ sx: { bgcolor: '#2a2a2a', color: '#fff' } }}
+      {/* Speed Dial for Quick Actions */}
+      <SpeedDial
+        ariaLabel="User Management Actions"
+        sx={{ 
+          position: 'fixed', 
+          bottom: 24, 
+          right: 24,
+          '& .MuiFab-primary': {
+            background: 'linear-gradient(135deg, #6B46C1, #9333EA)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #5b39a8, #7c3aed)',
+            },
+          },
+        }}
+        icon={<SpeedDialIcon />}
       >
-        <DialogTitle>
-          {dialogMode === 'create' ? 'Create New User' : 
-           dialogMode === 'edit' ? 'Edit User' : 'User Details'}
-        </DialogTitle>
-        <DialogContent>
-          {selectedUser && (
-            <Box sx={{ pt: 2 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    value={selectedUser.email}
-                    disabled={dialogMode === 'view'}
-                    InputProps={{
-                      sx: { color: '#fff', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444' } }
-                    }}
-                    InputLabelProps={{ sx: { color: '#ccc' } }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Display Name"
-                    value={selectedUser.displayName || ''}
-                    disabled={dialogMode === 'view'}
-                    InputProps={{
-                      sx: { color: '#fff', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444' } }
-                    }}
-                    InputLabelProps={{ sx: { color: '#ccc' } }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth disabled={dialogMode === 'view'}>
-                    <InputLabel sx={{ color: '#ccc' }}>Role</InputLabel>
-                    <Select
-                      value={selectedUser.role}
-                      sx={{ color: '#fff', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444' } }}
-                    >
-                      {roles.map((role) => (
-                        <MenuItem key={role} value={role}>
-                          {role.replace('_', ' ').toUpperCase()}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Company ID"
-                    value={selectedUser.companyId || ''}
-                    disabled={dialogMode === 'view'}
-                    InputProps={{
-                      sx: { color: '#fff', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444' } }
-                    }}
-                    InputLabelProps={{ sx: { color: '#ccc' } }}
-                  />
-                </Grid>
-              </Grid>
+        {speedDialActions.map((action) => (
+          <SpeedDialAction
+            key={action.name}
+            icon={action.icon}
+            tooltipTitle={action.name}
+            onClick={action.onClick}
+            sx={{
+              '& .MuiSpeedDialAction-fab': {
+                bgcolor: '#2a2a2a',
+                color: '#9333EA',
+                '&:hover': {
+                  bgcolor: '#333',
+                },
+              },
+            }}
+          />
+        ))}
+      </SpeedDial>
 
-              {selectedUser.suspendedAt && (
-                <Alert severity="warning" sx={{ mt: 2, bgcolor: 'rgba(255, 152, 0, 0.1)' }}>
-                  <Typography variant="body2">
-                    <strong>Suspended:</strong> {selectedUser.suspendedAt.toLocaleString()}
-                    <br />
-                    <strong>Reason:</strong> {selectedUser.suspensionReason}
-                    <br />
-                    <strong>By:</strong> {selectedUser.suspendedBy}
-                  </Typography>
-                </Alert>
-              )}
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowUserDialog(false)} sx={{ color: '#ccc' }}>
-            Cancel
-          </Button>
-          {dialogMode !== 'view' && (
-            <Button 
-              variant="contained"
-              sx={{ bgcolor: '#ff4444', '&:hover': { bgcolor: '#cc3333' } }}
-            >
-              {dialogMode === 'create' ? 'Create' : 'Save Changes'}
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
+      {/* User Profile Dialog */}
+      <UserProfileDialog
+        open={showUserProfileDialog}
+        onClose={() => {
+          setShowUserProfileDialog(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onUpdate={handleUpdateUser}
+        onSuspend={handleSuspendUser}
+        onReactivate={handleReactivateUser}
+        companies={companies}
+      />
+
+      {/* User Invitation Dialog */}
+      <UserInvitationDialog
+        open={showInvitationDialog}
+        onClose={() => setShowInvitationDialog(false)}
+        onInvite={handleSendInvitations}
+        companies={companies}
+      />
+
+      {/* Bulk Operations Dialog */}
+      <BulkUserOperations
+        open={showBulkOperationsDialog}
+        onClose={() => setShowBulkOperationsDialog(false)}
+        onExecute={handleBulkOperation}
+        selectedUsers={getSelectedUserProfiles()}
+        companies={companies}
+      />
+
+      {/* CSV Import Dialog */}
+      <CSVImportDialog
+        open={showCSVImportDialog}
+        onClose={() => setShowCSVImportDialog(false)}
+        onImport={handleCSVImport}
+        companies={companies}
+      />
 
       {/* Impersonation Modal */}
       <ImpersonationModal

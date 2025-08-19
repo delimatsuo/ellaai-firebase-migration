@@ -18,6 +18,7 @@ import { questionRoutes } from './routes/questions';
 import { skillsRoutes } from './routes/skills';
 import { supportRoutes } from './routes/support';
 import { adminRoutes } from './routes/admin';
+import { invitationRoutes } from './routes/invitations';
 import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimiter';
 import { authMiddleware } from './middleware/auth';
@@ -80,6 +81,7 @@ app.use('/api/questions', authMiddleware, supportContextMiddleware, questionRout
 app.use('/api/skills', skillsRoutes);
 app.use('/api/support', authMiddleware, supportContextMiddleware, supportRoutes);
 app.use('/api/admin', authMiddleware, supportContextMiddleware, adminRoutes);
+app.use('/api/invitations', invitationRoutes); // Public routes for invitation handling
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
