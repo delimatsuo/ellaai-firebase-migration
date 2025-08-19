@@ -1,0 +1,258 @@
+name: EllaAI Platform CI/CD
+
+on:
+  push:
+    branches: [ main, develop, release/* ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+  FIREBASE_PROJECT_ID: ellaai-platform-prod
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        test-type: [frontend, backend, integration]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+          cd ../functions && npm ci
+      
+      - name: Run linting
+        run: |
+          cd frontend && npm run lint
+          cd ../functions && npm run lint
+      
+      - name: Run type checking
+        run: |
+          cd frontend && npm run type-check
+          cd ../functions && npm run build
+      
+      - name: Run tests - Frontend
+        if: matrix.test-type == 'frontend'
+        run: |
+          cd frontend && npm run test:coverage
+      
+      - name: Run tests - Backend
+        if: matrix.test-type == 'backend'
+        run: |
+          cd functions && npm run test:coverage
+      
+      - name: Run integration tests
+        if: matrix.test-type == 'integration'
+        run: |
+          npm run test:integration
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./frontend/coverage/lcov.info,./functions/coverage/lcov.info
+          fail_ci_if_error: true
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run security audit
+        run: |
+          npm audit --audit-level moderate
+          cd frontend && npm audit --audit-level moderate
+          cd ../functions && npm audit --audit-level moderate
+      
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: javascript
+      
+      - name: Run OWASP ZAP scan
+        uses: zaproxy/action-full-scan@v0.9.0
+        with:
+          target: 'https://ellaai-platform-prod.web.app'
+
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+          cd ../functions && npm ci
+      
+      - name: Build frontend
+        run: cd frontend && npm run build
+      
+      - name: Build functions
+        run: cd functions && npm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: |
+            frontend/dist
+            functions/lib
+          retention-days: 30
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, performance-test]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files
+      
+      - name: Setup Firebase CLI
+        run: npm install -g firebase-tools
+      
+      - name: Deploy to Firebase Staging
+        run: |
+          firebase use ellaai-platform-staging
+          firebase deploy --only hosting,functions
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      
+      - name: Run smoke tests
+        run: |
+          npm run test:smoke -- --url https://ellaai-platform-staging.web.app
+      
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, performance-test]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files
+      
+      - name: Setup Firebase CLI
+        run: npm install -g firebase-tools
+      
+      - name: Deploy to Firebase Production
+        run: |
+          firebase use ellaai-platform-prod
+          firebase deploy --only hosting,functions
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      
+      - name: Run production smoke tests
+        run: |
+          npm run test:smoke -- --url https://ellaai-platform-prod.web.app
+      
+      - name: Update monitoring
+        run: |
+          curl -X POST "${{ secrets.MONITORING_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{"event": "deployment", "version": "${{ github.sha }}", "environment": "production"}'
+      
+      - name: Notify success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          text: '🚀 EllaAI Platform deployed to production successfully!'
+
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: failure()
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Firebase CLI
+        run: npm install -g firebase-tools
+      
+      - name: Rollback deployment
+        run: |
+          firebase use ellaai-platform-prod
+          firebase hosting:versions:list --only hosting
+          # Manual rollback command - implement based on requirements
+      
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#alerts'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          text: '⚠️ Production deployment failed and rollback initiated'

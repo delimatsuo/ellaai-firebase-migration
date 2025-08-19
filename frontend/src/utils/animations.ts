@@ -177,8 +177,9 @@ export const withDelay = (animation: Variants, delay: number): Variants => ({
   animate: {
     ...animation.animate,
     transition: {
-      ...animation.animate?.transition,
       delay,
+      duration: 0.5,
+      ease: 'easeOut',
     },
   },
 });

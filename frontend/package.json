@@ -7,17 +7,28 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:ci": "vitest run --coverage",
+    "type-check": "tsc --noEmit",
+    "analyze": "npx vite-bundle-analyzer",
+    "perf:analyze": "node ../scripts/performance-monitoring.js full",
+    "perf:bundle": "node ../scripts/performance-monitoring.js bundle",
+    "perf:lighthouse": "npx lhci autorun",
+    "perf:load": "node ../scripts/performance-monitoring.js load",
+    "build:analyze": "npm run build && npm run perf:bundle && npx vite-bundle-analyzer dist",
+    "build:performance": "npm run build && npm run perf:analyze"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@hookform/resolvers": "^3.1.1",
-    "@monaco-editor/react": "^4.5.1",
+    "@monaco-editor/react": "^4.7.0",
     "@mui/icons-material": "^5.14.1",
+    "@mui/lab": "^5.0.0-alpha.158",
     "@mui/material": "^5.14.1",
     "@mui/x-data-grid": "^8.10.1",
     "@mui/x-date-pickers": "^8.10.0",
@@ -57,8 +68,11 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "jsdom": "^22.1.0",
+    "rollup-plugin-visualizer": "^6.0.3",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
-    "vitest": "^0.34.1"
+    "vite-plugin-pwa": "^1.0.2",
+    "vitest": "^0.34.1",
+    "workbox-precaching": "^7.3.0"
   }
 }

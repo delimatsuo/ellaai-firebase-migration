@@ -1,11 +1,11 @@
 import React from 'react';
 import { Card, CardProps, styled, alpha } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { glassStyles } from '../../theme/theme';
 
 type GlassVariant = 'light' | 'medium' | 'dark';
 
-interface GlassCardProps extends Omit<CardProps, 'variant'> {
+interface GlassCardProps extends Omit<CardProps, 'variant' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd'> {
   variant?: GlassVariant;
   animate?: boolean;
   hoverEffect?: boolean;
@@ -31,7 +31,9 @@ const StyledGlassCard = styled(Card, {
   }),
 }));
 
-const MotionCard = motion(StyledGlassCard);
+const MotionCard = motion(StyledGlassCard, {
+  forwardMotionProps: true,
+});
 
 const GlassCard: React.FC<GlassCardProps> = ({
   variant = 'light',

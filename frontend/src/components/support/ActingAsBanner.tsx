@@ -27,14 +27,14 @@ import {
   Warning,
   Person,
   ExpandMore,
-  Emergency,
+  ErrorOutline as Emergency,
   Info,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useActingAs } from '../../hooks/useActingAs';
 import { colors } from '../../theme/theme';
 
-const ActingAsBanner = styled(AppBar)(({ theme }) => ({
+const ActingAsBannerStyled = styled(AppBar)(({ theme }) => ({
   position: 'fixed',
   top: 0,
   left: 0,
@@ -141,7 +141,7 @@ const ActingAsBanner: React.FC = () => {
           exit={{ y: -100, opacity: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <ActingAsBanner position="fixed">
+          <ActingAsBannerStyled position="fixed">
             <Toolbar sx={{ minHeight: 56, px: 2 }}>
               {/* Left side - Acting As info */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
@@ -286,7 +286,7 @@ const ActingAsBanner: React.FC = () => {
                 </Button>
               </Box>
             </Toolbar>
-          </ActingAsBanner>
+          </ActingAsBannerStyled>
         </motion.div>
       </AnimatePresence>
 

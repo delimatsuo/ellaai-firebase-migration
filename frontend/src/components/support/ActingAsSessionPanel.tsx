@@ -17,6 +17,10 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  styled,
+  alpha,
+} from '@mui/material';
+import {
   Timeline,
   TimelineItem,
   TimelineSeparator,
@@ -24,9 +28,7 @@ import {
   TimelineContent,
   TimelineDot,
   TimelineOppositeContent,
-  styled,
-  alpha,
-} from '@mui/material';
+} from '@mui/lab';
 import {
   AccessTime,
   ExitToApp,

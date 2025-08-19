@@ -13,6 +13,9 @@ import {
   CircularProgress,
   Alert,
   LinearProgress,
+  Tabs,
+  Tab,
+  Dialog
 } from '@mui/material';
 import {
   CheckCircle,
@@ -22,8 +25,11 @@ import {
   Code,
   Share,
   Download,
+  Analytics,
+  Assessment
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
+import { CandidateResultDetail, ReportGenerator } from '@/components/analytics';
 
 interface QuestionResult {
   id: string;
@@ -60,6 +66,9 @@ const AssessmentResultsPage: React.FC = () => {
   const [results, setResults] = useState<AssessmentResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
+  const [showDetailedView, setShowDetailedView] = useState(false);
+  const [showReportGenerator, setShowReportGenerator] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -330,6 +339,27 @@ const AssessmentResultsPage: React.FC = () => {
           ))}
         </Paper>
 
+        {/* Enhanced Navigation */}
+        <Paper sx={{ mb: 3 }}>          
+          <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
+            <Tab label="Summary" icon={<Assessment />} />
+            <Tab label="Detailed Analysis" icon={<Analytics />} />
+          </Tabs>
+        </Paper>
+
+        {/* Tab Content */}
+        {activeTab === 1 && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Detailed Performance Analysis
+            </Typography>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              This detailed view provides comprehensive insights into your performance across all assessment areas.
+            </Alert>
+            {/* Detailed analytics would go here */}
+          </Box>
+        )}
+
         {/* Actions */}
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Button 
@@ -340,10 +370,17 @@ const AssessmentResultsPage: React.FC = () => {
           </Button>
           <Button 
             variant="outlined" 
+            startIcon={<Analytics />}
+            onClick={() => setShowDetailedView(true)}
+          >
+            View Detailed Analysis
+          </Button>
+          <Button 
+            variant="outlined" 
             startIcon={<Share />}
             onClick={() => {
-              // Mock share functionality
               navigator.clipboard?.writeText(window.location.href);
+              alert('Link copied to clipboard!');
             }}
           >
             Share Results
@@ -351,12 +388,9 @@ const AssessmentResultsPage: React.FC = () => {
           <Button 
             variant="outlined" 
             startIcon={<Download />}
-            onClick={() => {
-              // Mock download functionality
-              console.log('Download results');
-            }}
+            onClick={() => setShowReportGenerator(true)}
           >
-            Download PDF
+            Generate Report
           </Button>
           <Button 
             variant="contained" 
@@ -365,6 +399,28 @@ const AssessmentResultsPage: React.FC = () => {
             Take Another Assessment
           </Button>
         </Box>
+
+        {/* Detailed View Dialog */}
+        <Dialog
+          open={showDetailedView}
+          onClose={() => setShowDetailedView(false)}
+          maxWidth="xl"
+          fullWidth
+          PaperProps={{ sx: { height: '90vh' } }}
+        >
+          {id && (
+            <CandidateResultDetail />
+          )}
+        </Dialog>
+
+        {/* Report Generator Dialog */}
+        <ReportGenerator
+          open={showReportGenerator}
+          onClose={() => setShowReportGenerator(false)}
+          entityIds={id ? [id] : []}
+          entityType="candidates"
+          title="Generate Assessment Report"
+        />
       </Box>
     </Container>
   );

@@ -176,7 +176,7 @@ const CandidatesPage: React.FC = () => {
     const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          candidate.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = !statusFilter || candidate.status === statusFilter;
-    const matchesAssessment = !assessmentFilter || candidate.assessmentId === assessmentFilter;
+    const matchesAssessment = !assessmentFilter;
     
     return matchesSearch && matchesStatus && matchesAssessment;
   });
@@ -528,15 +528,15 @@ const CandidatesPage: React.FC = () => {
                       {filteredCandidates
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((candidate, index) => (
-                          <motion.tr
+                          <TableRow
                             key={candidate.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.05 }}
-                            component={TableRow}
                             hover
                             sx={{ cursor: 'pointer' }}
                             onClick={() => handleViewProfile(candidate)}
+                            component={motion.tr}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
                           >
                             <TableCell>
                               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -655,7 +655,7 @@ const CandidatesPage: React.FC = () => {
                                 <MoreVert />
                               </IconButton>
                             </TableCell>
-                          </motion.tr>
+                          </TableRow>
                         ))}
                     </TableBody>
                   </Table>

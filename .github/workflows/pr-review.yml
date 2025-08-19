@@ -1,0 +1,454 @@
+name: 🔍 Pull Request Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, develop]
+  pull_request_review:
+    types: [submitted]
+
+env:
+  NODE_VERSION: '18'
+
+concurrency:
+  group: pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-info:
+    name: 📋 PR Information
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    outputs:
+      has-frontend-changes: ${{ steps.changes.outputs.frontend }}
+      has-backend-changes: ${{ steps.changes.outputs.backend }}
+      has-security-changes: ${{ steps.changes.outputs.security }}
+      pr-size: ${{ steps.size.outputs.size }}
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Detect changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'functions/**'
+            security:
+              - 'firestore.rules'
+              - 'storage.rules'
+              - 'firebase.json'
+              - '**/package*.json'
+            docs:
+              - '**/*.md'
+            workflows:
+              - '.github/workflows/**'
+
+      - name: 📏 Calculate PR size
+        id: size
+        run: |
+          # Calculate the number of changed lines
+          ADDITIONS=$(git diff --numstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | awk '{sum+=$1} END {print sum}')
+          DELETIONS=$(git diff --numstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | awk '{sum+=$2} END {print sum}')
+          TOTAL_CHANGES=$((ADDITIONS + DELETIONS))
+          
+          if [ $TOTAL_CHANGES -lt 100 ]; then
+            SIZE="small"
+          elif [ $TOTAL_CHANGES -lt 500 ]; then
+            SIZE="medium"
+          elif [ $TOTAL_CHANGES -lt 1000 ]; then
+            SIZE="large"
+          else
+            SIZE="extra-large"
+          fi
+          
+          echo "size=$SIZE" >> $GITHUB_OUTPUT
+          echo "📏 PR Size: $SIZE ($TOTAL_CHANGES lines changed)"
+
+      - name: 📊 Generate PR summary
+        run: |
+          cat << EOF > pr-summary.md
+          ## 📋 Pull Request Analysis
+          
+          **Size:** ${{ steps.size.outputs.size }}
+          **Changes Detected:**
+          - Frontend: ${{ steps.changes.outputs.frontend == 'true' && '✅' || '❌' }}
+          - Backend: ${{ steps.changes.outputs.backend == 'true' && '✅' || '❌' }}
+          - Security: ${{ steps.changes.outputs.security == 'true' && '✅' || '❌' }}
+          - Documentation: ${{ steps.changes.outputs.docs == 'true' && '✅' || '❌' }}
+          - Workflows: ${{ steps.changes.outputs.workflows == 'true' && '✅' || '❌' }}
+          
+          **Recommended Reviewers:**
+          ${{ steps.changes.outputs.frontend == 'true' && '- @frontend-team' || '' }}
+          ${{ steps.changes.outputs.backend == 'true' && '- @backend-team' || '' }}
+          ${{ steps.changes.outputs.security == 'true' && '- @security-team' || '' }}
+          EOF
+
+  code-quality:
+    name: 🔍 Code Quality Review
+    runs-on: ubuntu-latest
+    needs: [pr-info]
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci
+          if [ "${{ needs.pr-info.outputs.has-frontend-changes }}" == "true" ]; then
+            cd frontend && npm ci && cd ..
+          fi
+          if [ "${{ needs.pr-info.outputs.has-backend-changes }}" == "true" ]; then
+            cd functions && npm ci && cd ..
+          fi
+
+      - name: 🔍 Run ESLint with annotations
+        run: |
+          echo "🔍 Running ESLint for changed files..."
+          
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -E '\.(ts|tsx|js|jsx)$' || true)
+          
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "📋 Changed files:"
+            echo "$CHANGED_FILES"
+            
+            # Run ESLint on changed files
+            for file in $CHANGED_FILES; do
+              if [ -f "$file" ]; then
+                echo "🔍 Linting $file..."
+                npx eslint "$file" --format github || true
+              fi
+            done
+          else
+            echo "ℹ️ No JavaScript/TypeScript files changed"
+          fi
+
+      - name: 🧪 Run tests for changed code
+        run: |
+          echo "🧪 Running tests for changed areas..."
+          
+          # Run frontend tests if frontend changed
+          if [ "${{ needs.pr-info.outputs.has-frontend-changes }}" == "true" ]; then
+            echo "🎨 Running frontend tests..."
+            cd frontend && npm run test:ci && cd ..
+          fi
+          
+          # Run backend tests if backend changed
+          if [ "${{ needs.pr-info.outputs.has-backend-changes }}" == "true" ]; then
+            echo "⚡ Running backend tests..."
+            cd functions && npm run test:ci && cd ..
+          fi
+
+      - name: 🔒 Security review for sensitive changes
+        if: needs.pr-info.outputs.has-security-changes == 'true'
+        run: |
+          echo "🔒 Reviewing security-sensitive changes..."
+          
+          # Check for potential security issues
+          SECURITY_PATTERNS=(
+            "password"
+            "secret"
+            "api_key"
+            "private_key"
+            "token"
+            "auth.*bypass"
+            "admin.*override"
+          )
+          
+          echo "🔍 Scanning for security patterns..."
+          FINDINGS=0
+          
+          for pattern in "${SECURITY_PATTERNS[@]}"; do
+            if git diff ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -i "$pattern"; then
+              echo "⚠️ Security pattern found: $pattern"
+              FINDINGS=$((FINDINGS + 1))
+            fi
+          done
+          
+          if [ $FINDINGS -gt 0 ]; then
+            echo "::warning::Security-sensitive patterns detected - manual review required"
+          else
+            echo "✅ No obvious security concerns detected"
+          fi
+
+  size-review:
+    name: 📏 PR Size Review
+    runs-on: ubuntu-latest
+    needs: [pr-info]
+    if: needs.pr-info.outputs.pr-size == 'extra-large'
+    steps:
+      - name: 📏 Large PR warning
+        run: |
+          echo "::warning::This PR is extra-large. Consider breaking it into smaller PRs for easier review."
+          
+          cat << EOF > large-pr-comment.md
+          ## 📏 Large PR Detected
+          
+          This pull request has been flagged as **extra-large** (>1000 lines changed).
+          
+          ### 🎯 Recommendations:
+          
+          1. **Break it down:** Consider splitting this into smaller, focused PRs
+          2. **Add context:** Provide detailed description of changes
+          3. **Self-review:** Review your own changes before requesting review
+          4. **Testing:** Ensure comprehensive test coverage
+          
+          ### 📋 Review Checklist:
+          
+          - [ ] PR description explains the changes clearly
+          - [ ] Breaking changes are documented
+          - [ ] Tests cover new functionality
+          - [ ] Documentation is updated
+          - [ ] Performance impact is considered
+          
+          Large PRs take longer to review and are more likely to contain bugs. Please consider the reviewer's time and cognitive load.
+          EOF
+
+      - name: 📝 Comment on large PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const comment = fs.readFileSync('large-pr-comment.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  automated-review:
+    name: 🤖 Automated Review
+    runs-on: ubuntu-latest
+    needs: [pr-info]
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Review checklist
+        id: checklist
+        run: |
+          echo "🔍 Generating automated review checklist..."
+          
+          # Check for common issues
+          HAS_TESTS=false
+          HAS_DOCS=false
+          HAS_BREAKING_CHANGES=false
+          
+          # Check if tests were added/modified
+          if git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -E '\.(test|spec)\.(ts|tsx|js|jsx)$'; then
+            HAS_TESTS=true
+          fi
+          
+          # Check if documentation was updated
+          if git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -E '\.md$'; then
+            HAS_DOCS=true
+          fi
+          
+          # Check for potential breaking changes
+          if git diff ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -E '(BREAKING|breaking|deprecated|removed)'; then
+            HAS_BREAKING_CHANGES=true
+          fi
+          
+          cat << EOF > review-checklist.md
+          ## 🤖 Automated Review Checklist
+          
+          | Check | Status | Notes |
+          |-------|--------|-------|
+          | Tests included | ${{ HAS_TESTS && '✅' || '⚠️' }} | ${{ HAS_TESTS && 'Test files detected' || 'Consider adding tests for new functionality' }} |
+          | Documentation updated | ${{ HAS_DOCS && '✅' || 'ℹ️' }} | ${{ HAS_DOCS && 'Documentation changes detected' || 'Update docs if needed' }} |
+          | Breaking changes | ${{ HAS_BREAKING_CHANGES && '⚠️' || '✅' }} | ${{ HAS_BREAKING_CHANGES && 'Potential breaking changes detected' || 'No breaking changes detected' }} |
+          | PR size | ${{ needs.pr-info.outputs.pr-size == 'small' && '✅' || needs.pr-info.outputs.pr-size == 'medium' && '✅' || '⚠️' }} | Size: ${{ needs.pr-info.outputs.pr-size }} |
+          
+          ### 📋 Manual Review Points:
+          
+          - [ ] Code follows project conventions
+          - [ ] Error handling is appropriate
+          - [ ] Performance impact is considered
+          - [ ] Security implications are reviewed
+          - [ ] User experience is maintained/improved
+          
+          ${{ needs.pr-info.outputs.has-security-changes == 'true' && '### 🔒 Security Review Required\n\nThis PR includes security-sensitive changes. Please ensure:\n- [ ] Security team has reviewed\n- [ ] Changes follow security best practices\n- [ ] No credentials are exposed' || '' }}
+          EOF
+          
+          echo "has-tests=$HAS_TESTS" >> $GITHUB_OUTPUT
+          echo "has-docs=$HAS_DOCS" >> $GITHUB_OUTPUT
+          echo "has-breaking-changes=$HAS_BREAKING_CHANGES" >> $GITHUB_OUTPUT
+
+      - name: 📝 Post review checklist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const checklist = fs.readFileSync('review-checklist.md', 'utf8');
+            
+            // Check if we've already posted a checklist
+            const comments = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            const existingComment = comments.data.find(comment => 
+              comment.body.includes('🤖 Automated Review Checklist')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                comment_id: existingComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: checklist
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: checklist
+              });
+            }
+
+  pr-labels:
+    name: 🏷️ Auto-label PR
+    runs-on: ubuntu-latest
+    needs: [pr-info, code-quality]
+    if: always() && github.event.pull_request.draft == false
+    steps:
+      - name: 🏷️ Add labels based on changes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [];
+            
+            // Size labels
+            labels.push('size:${{ needs.pr-info.outputs.pr-size }}');
+            
+            // Component labels
+            if ('${{ needs.pr-info.outputs.has-frontend-changes }}' === 'true') {
+              labels.push('frontend');
+            }
+            if ('${{ needs.pr-info.outputs.has-backend-changes }}' === 'true') {
+              labels.push('backend');
+            }
+            if ('${{ needs.pr-info.outputs.has-security-changes }}' === 'true') {
+              labels.push('security');
+            }
+            
+            // Quality labels
+            if ('${{ needs.code-quality.result }}' === 'success') {
+              labels.push('quality:passed');
+            } else if ('${{ needs.code-quality.result }}' === 'failure') {
+              labels.push('quality:failed');
+            }
+            
+            // Add labels to PR
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: labels
+              });
+            }
+
+  review-assignment:
+    name: 👥 Auto-assign Reviewers
+    runs-on: ubuntu-latest
+    needs: [pr-info]
+    if: github.event.pull_request.draft == false && github.event.action == 'opened'
+    steps:
+      - name: 👥 Assign reviewers based on changes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const reviewers = [];
+            const teamReviewers = [];
+            
+            // Add team reviewers based on changed components
+            if ('${{ needs.pr-info.outputs.has-frontend-changes }}' === 'true') {
+              teamReviewers.push('frontend-team');
+            }
+            if ('${{ needs.pr-info.outputs.has-backend-changes }}' === 'true') {
+              teamReviewers.push('backend-team');
+            }
+            if ('${{ needs.pr-info.outputs.has-security-changes }}' === 'true') {
+              teamReviewers.push('security-team');
+            }
+            
+            // For large PRs, assign additional reviewers
+            if ('${{ needs.pr-info.outputs.pr-size }}' === 'extra-large') {
+              teamReviewers.push('tech-leads');
+            }
+            
+            // Request reviews (remove duplicates)
+            const uniqueTeamReviewers = [...new Set(teamReviewers)];
+            
+            if (uniqueTeamReviewers.length > 0) {
+              try {
+                await github.rest.pulls.requestReviewers({
+                  pull_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  team_reviewers: uniqueTeamReviewers
+                });
+              } catch (error) {
+                console.log('Could not assign team reviewers:', error.message);
+              }
+            }
+
+  pr-summary:
+    name: 📊 PR Summary
+    runs-on: ubuntu-latest
+    needs: [pr-info, code-quality, automated-review]
+    if: always()
+    steps:
+      - name: 📊 Generate PR summary
+        run: |
+          echo "📊 Pull Request Review Summary"
+          echo "================================"
+          echo "PR Size: ${{ needs.pr-info.outputs.pr-size }}"
+          echo "Frontend Changes: ${{ needs.pr-info.outputs.has-frontend-changes }}"
+          echo "Backend Changes: ${{ needs.pr-info.outputs.has-backend-changes }}"
+          echo "Security Changes: ${{ needs.pr-info.outputs.has-security-changes }}"
+          echo "Code Quality: ${{ needs.code-quality.result }}"
+          echo "Automated Review: ${{ needs.automated-review.result }}"
+          
+          # Add to GitHub summary
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+          ## 📊 Pull Request Review Summary
+          
+          | Aspect | Status | Details |
+          |--------|--------|---------|
+          | Size | ${{ needs.pr-info.outputs.pr-size }} | ${{ needs.pr-info.outputs.pr-size == 'small' && '✅ Easy to review' || needs.pr-info.outputs.pr-size == 'medium' && '⚠️ Moderate complexity' || '🚨 Complex review required' }} |
+          | Code Quality | ${{ needs.code-quality.result == 'success' && '✅ Passed' || '❌ Failed' }} | Linting and tests |
+          | Components | - | Frontend: ${{ needs.pr-info.outputs.has-frontend-changes == 'true' && '✅' || '❌' }}, Backend: ${{ needs.pr-info.outputs.has-backend-changes == 'true' && '✅' || '❌' }} |
+          | Security | ${{ needs.pr-info.outputs.has-security-changes == 'true' && '⚠️ Review Required' || '✅ No Changes' }} | Security-sensitive files |
+          
+          ### 📋 Next Steps
+          
+          1. **Author:** Address any automated feedback
+          2. **Reviewers:** Focus on business logic and architecture
+          3. **Approvers:** Ensure all checks pass before merging
+          EOF

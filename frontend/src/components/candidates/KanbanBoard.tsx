@@ -184,13 +184,10 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         index={index}
                       >
                         {(provided, snapshot) => (
-                          <motion.div
+                          <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.1 }}
                             style={{
                               ...provided.draggableProps.style,
                               ...(snapshot.isDragging && {
@@ -199,15 +196,21 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                               }),
                             }}
                           >
-                            <CandidateCard
-                              candidate={candidate}
-                              variant="compact"
-                              onViewProfile={onViewProfile}
-                              onSendEmail={onSendEmail}
-                              onScheduleInterview={onScheduleInterview}
-                              onUpdateStatus={onCandidateMove}
-                            />
-                          </motion.div>
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3, delay: index * 0.1 }}
+                            >
+                              <CandidateCard
+                                candidate={candidate}
+                                variant="compact"
+                                onViewProfile={onViewProfile}
+                                onSendEmail={onSendEmail}
+                                onScheduleInterview={onScheduleInterview}
+                                onUpdateStatus={(candidate: Candidate, status: Candidate['status']) => onCandidateMove(candidate.id, status)}
+                              />
+                            </motion.div>
+                          </div>
                         )}
                       </Draggable>
                     ))}

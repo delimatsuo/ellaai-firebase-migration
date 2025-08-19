@@ -19,6 +19,9 @@ import { skillsRoutes } from './routes/skills';
 import { supportRoutes } from './routes/support';
 import { adminRoutes } from './routes/admin';
 import { invitationRoutes } from './routes/invitations';
+import { proctorRoutes } from './routes/proctor';
+import { executionRoutes } from './routes/execution';
+import { analyticsRoutes } from './routes/analytics';
 import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimiter';
 import { authMiddleware } from './middleware/auth';
@@ -48,11 +51,16 @@ app.use(helmet({
 // CORS configuration
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://ellaai.com', 'https://www.ellaai.com']
-    : ['http://localhost:3000', 'http://localhost:5000'],
+    ? [
+        'https://ellaai.com',
+        'https://www.ellaai.com',
+        'https://ellaai-platform-prod.web.app',
+        'https://ellaai-platform-prod.firebaseapp.com'
+      ]
+    : ['http://localhost:3000', 'http://localhost:5000', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Firebase-AppCheck'],
 };
 
 app.use(cors(corsOptions));
@@ -60,7 +68,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Global middleware
-app.use(rateLimiter);
+app.use(rateLimiter()); // Use the default rate limiter configuration
 app.use(auditMiddleware);
 
 // Health check endpoint
@@ -82,6 +90,9 @@ app.use('/api/skills', skillsRoutes);
 app.use('/api/support', authMiddleware, supportContextMiddleware, supportRoutes);
 app.use('/api/admin', authMiddleware, supportContextMiddleware, adminRoutes);
 app.use('/api/invitations', invitationRoutes); // Public routes for invitation handling
+app.use('/api/proctor', proctorRoutes); // Proctoring routes
+app.use('/api/execution', executionRoutes); // Code execution routes
+app.use('/api/analytics', authMiddleware, supportContextMiddleware, analyticsRoutes); // Analytics routes
 
 // Error handling middleware (should be last)
 app.use(errorHandler);

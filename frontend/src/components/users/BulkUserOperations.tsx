@@ -212,7 +212,7 @@ const BulkUserOperations: React.FC<BulkUserOperationsProps> = ({
       } else if (result.successful.length === 0) {
         toast.error(`Failed to ${selectedOperation} all users`);
       } else {
-        toast.warning(`Partially completed: ${result.successful.length} successful, ${result.failed.length} failed`);
+        toast.error(`Partially completed: ${result.successful.length} successful, ${result.failed.length} failed`);
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to execute bulk operation');

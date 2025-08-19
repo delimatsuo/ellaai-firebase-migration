@@ -258,6 +258,7 @@ const DashboardPage: React.FC = () => {
           <PerformanceChart
             title={isCandidate ? 'Your Performance Trends' : 'Assessment Analytics'}
             height={320}
+            data={[]}
           />
         </Grid>
 

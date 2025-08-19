@@ -36,6 +36,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { colors } from '../../theme/theme';
 import GlassCard from '../ui/GlassCard';
+import { AssessmentProctoringSettings } from './AssessmentProctoringSettings';
 
 interface Question {
   id: string;
@@ -306,52 +307,131 @@ const AssessmentWizard: React.FC<AssessmentWizardProps> = ({
     </Box>
   );
 
+  const handleProctoringSettingsChange = (field: string, value: boolean) => {
+    setAssessmentData(prev => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        [field]: value,
+      },
+    }));
+  };
+
   const renderSettings = () => (
-    <GlassCard variant="light" animate={false}>
-      <Box sx={{ p: 4 }}>
-        <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-          Assessment Settings
-        </Typography>
-        
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={assessmentData.settings.shuffleQuestions}
-                  onChange={(e) => setAssessmentData(prev => ({
-                    ...prev,
-                    settings: { ...prev.settings, shuffleQuestions: e.target.checked }
-                  }))}
-                />
-              }
-              label="Shuffle Questions"
-            />
-            <Typography variant="body2" color="text.secondary">
-              Randomize question order for each candidate
-            </Typography>
-          </Grid>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <GlassCard variant="light" animate={false}>
+        <Box sx={{ p: 4 }}>
+          <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+            Assessment Behavior Settings
+          </Typography>
           
-          <Grid item xs={12} sm={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={assessmentData.settings.preventCheating}
-                  onChange={(e) => setAssessmentData(prev => ({
-                    ...prev,
-                    settings: { ...prev.settings, preventCheating: e.target.checked }
-                  }))}
-                />
-              }
-              label="Prevent Cheating"
-            />
-            <Typography variant="body2" color="text.secondary">
-              Disable copy/paste, right-click, and browser navigation
-            </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={assessmentData.settings.shuffleQuestions}
+                    onChange={(e) => setAssessmentData(prev => ({
+                      ...prev,
+                      settings: { ...prev.settings, shuffleQuestions: e.target.checked }
+                    }))}
+                  />
+                }
+                label="Shuffle Questions"
+              />
+              <Typography variant="body2" color="text.secondary">
+                Randomize question order for each candidate
+              </Typography>
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={assessmentData.settings.shuffleOptions}
+                    onChange={(e) => setAssessmentData(prev => ({
+                      ...prev,
+                      settings: { ...prev.settings, shuffleOptions: e.target.checked }
+                    }))}
+                  />
+                }
+                label="Shuffle Answer Options"
+              />
+              <Typography variant="body2" color="text.secondary">
+                Randomize multiple choice answer order
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={assessmentData.settings.allowBackNavigation}
+                    onChange={(e) => setAssessmentData(prev => ({
+                      ...prev,
+                      settings: { ...prev.settings, allowBackNavigation: e.target.checked }
+                    }))}
+                  />
+                }
+                label="Allow Back Navigation"
+              />
+              <Typography variant="body2" color="text.secondary">
+                Let candidates go back to previous questions
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={assessmentData.settings.showResults}
+                    onChange={(e) => setAssessmentData(prev => ({
+                      ...prev,
+                      settings: { ...prev.settings, showResults: e.target.checked }
+                    }))}
+                  />
+                }
+                label="Show Results to Candidate"
+              />
+              <Typography variant="body2" color="text.secondary">
+                Display score immediately after completion
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={assessmentData.settings.autoSubmit}
+                    onChange={(e) => setAssessmentData(prev => ({
+                      ...prev,
+                      settings: { ...prev.settings, autoSubmit: e.target.checked }
+                    }))}
+                  />
+                }
+                label="Auto-Submit on Time Limit"
+              />
+              <Typography variant="body2" color="text.secondary">
+                Automatically submit when time runs out
+              </Typography>
+            </Grid>
           </Grid>
-        </Grid>
-      </Box>
-    </GlassCard>
+        </Box>
+      </GlassCard>
+
+      <GlassCard variant="light" animate={false}>
+        <Box sx={{ p: 4 }}>
+          <AssessmentProctoringSettings
+            settings={{
+              preventCheating: assessmentData.settings.preventCheating,
+              recordScreen: assessmentData.settings.recordScreen,
+              requireWebcam: assessmentData.settings.requireWebcam,
+            }}
+            onChange={handleProctoringSettingsChange}
+          />
+        </Box>
+      </GlassCard>
+    </Box>
   );
 
   const renderPreview = () => (

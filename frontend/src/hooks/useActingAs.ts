@@ -1,6 +1,6 @@
-import { useContext, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ActingAsContext, ActingAsContextType, SessionAction } from '../contexts/ActingAsContext';
+import { ActingAsContextType, SessionAction, useActingAs as useActingAsContext } from '../contexts/ActingAsContext';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -18,7 +18,7 @@ export const useActingAs = (): ActingAsContextType & {
   trackPageView: (pageName: string) => void;
   trackAction: (action: string, resource: string, details?: any) => void;
 } => {
-  const context = useContext(ActingAsContext) as ActingAsContextType;
+  const context = useActingAsContext();
   const { userProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

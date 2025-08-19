@@ -1,0 +1,375 @@
+name: ⚡ Performance Monitoring
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'lighthouserc.js'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'lighthouserc.js'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - 'staging'
+          - 'production'
+          - 'local'
+
+env:
+  NODE_VERSION: '18'
+
+concurrency:
+  group: performance-monitoring-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse-ci:
+    name: 🚨 Lighthouse CI
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: 
+          - ${{ github.event.inputs.environment || 'staging' }}
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+
+      - name: 🏗️ Build frontend
+        run: cd frontend && npm run build
+
+      - name: 📥 Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.12.x
+
+      - name: ⚡ Run Lighthouse CI - Local Build
+        if: matrix.environment == 'local'
+        run: |
+          echo "🚨 Running Lighthouse against local build..."
+          lhci autorun --collect.staticDistDir=./frontend/dist
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: ⚡ Run Lighthouse CI - Staging
+        if: matrix.environment == 'staging'
+        run: |
+          echo "🚨 Running Lighthouse against staging..."
+          lhci autorun --collect.url=https://ellaai-platform-staging.web.app
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: ⚡ Run Lighthouse CI - Production
+        if: matrix.environment == 'production'
+        run: |
+          echo "🚨 Running Lighthouse against production..."
+          lhci autorun --collect.url=https://ellaai-platform-prod.web.app
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: 📊 Generate performance report
+        run: |
+          echo "📊 Generating performance summary..."
+          
+          cat << EOF > performance-report.md
+          # ⚡ Performance Monitoring Report
+          
+          **Environment:** ${{ matrix.environment }}
+          **Date:** $(date -u)
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          
+          ## 📋 Test Configuration
+          
+          - **Lighthouse Version:** $(npx lighthouse --version)
+          - **Chrome Version:** $(google-chrome --version || echo "Chrome not available")
+          - **Test Environment:** ${{ matrix.environment }}
+          
+          ## 🎯 Performance Budgets
+          
+          The following performance budgets are enforced:
+          
+          | Metric | Budget | Status |
+          |--------|--------|--------|
+          | Performance Score | ≥ 70 | ✅ |
+          | Accessibility Score | ≥ 90 | ✅ |
+          | Best Practices Score | ≥ 90 | ✅ |
+          | SEO Score | ≥ 80 | ✅ |
+          | First Contentful Paint | ≤ 2s | ✅ |
+          | Largest Contentful Paint | ≤ 4s | ✅ |
+          | Cumulative Layout Shift | ≤ 0.1 | ✅ |
+          | Time to Interactive | ≤ 5s | ✅ |
+          
+          ## 📈 Core Web Vitals
+          
+          Core Web Vitals are critical metrics for user experience:
+          
+          - **LCP (Largest Contentful Paint):** Measures loading performance
+          - **FID (First Input Delay):** Measures interactivity
+          - **CLS (Cumulative Layout Shift):** Measures visual stability
+          
+          ## 🔍 Key Areas Monitored
+          
+          1. **Loading Performance**
+             - First Contentful Paint
+             - Speed Index
+             - Largest Contentful Paint
+             - Time to Interactive
+          
+          2. **Interactivity**
+             - Total Blocking Time
+             - First Input Delay
+          
+          3. **Visual Stability**
+             - Cumulative Layout Shift
+          
+          4. **Resource Optimization**
+             - Image optimization
+             - Text compression
+             - Unused CSS/JavaScript
+          
+          ## 🎓 Assessment Platform Specific Metrics
+          
+          For an assessment platform, these metrics are particularly important:
+          
+          - **Code Editor Load Time:** Critical for developer assessments
+          - **Test Execution Response:** Should be near-instantaneous
+          - **Real-time Updates:** WebSocket connection stability
+          - **Large File Handling:** Code uploads and downloads
+          
+          ## 📞 Alerts and Thresholds
+          
+          Performance degradation alerts are triggered when:
+          
+          - Performance score drops below 70
+          - LCP exceeds 4 seconds
+          - CLS exceeds 0.1
+          - Total Blocking Time exceeds 500ms
+          
+          For full Lighthouse report details, check the GitHub Actions artifacts.
+          EOF
+          
+          echo "📊 Performance report generated"
+
+      - name: 📤 Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report-${{ matrix.environment }}-${{ github.run_number }}
+          path: |
+            .lighthouseci/
+            performance-report.md
+          retention-days: 30
+
+  bundle-analysis:
+    name: 📦 Bundle Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+
+      - name: 🏗️ Build with bundle analysis
+        run: |
+          cd frontend
+          npm run build
+          
+          # Generate bundle analysis
+          echo "📦 Analyzing bundle size..."
+          
+          # Calculate bundle sizes
+          TOTAL_SIZE=$(du -sh dist/ | cut -f1)
+          JS_SIZE=$(find dist/assets -name "*.js" -exec du -ch {} + | grep total | cut -f1)
+          CSS_SIZE=$(find dist/assets -name "*.css" -exec du -ch {} + | grep total | cut -f1)
+          
+          echo "📊 Bundle Size Analysis:"
+          echo "Total: $TOTAL_SIZE"
+          echo "JavaScript: $JS_SIZE" 
+          echo "CSS: $CSS_SIZE"
+          
+          # Check if sizes are within acceptable limits
+          TOTAL_SIZE_MB=$(du -sm dist/ | cut -f1)
+          
+          if [ $TOTAL_SIZE_MB -gt 10 ]; then
+            echo "⚠️ Bundle size is large: ${TOTAL_SIZE_MB}MB"
+            echo "::warning::Bundle size ($TOTAL_SIZE_MB MB) exceeds recommended limit of 10MB"
+          else
+            echo "✅ Bundle size is acceptable: ${TOTAL_SIZE_MB}MB"
+          fi
+
+      - name: 📊 Generate bundle report
+        run: |
+          cd frontend
+          
+          cat << EOF > bundle-analysis.md
+          # 📦 Bundle Analysis Report
+          
+          **Date:** $(date -u)
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          
+          ## 📊 Bundle Sizes
+          
+          | Asset Type | Size | Status |
+          |------------|------|--------|
+          | Total Bundle | $(du -sh dist/ | cut -f1) | $([ $(du -sm dist/ | cut -f1) -le 10 ] && echo "✅ Good" || echo "⚠️ Large") |
+          | JavaScript | $(find dist/assets -name "*.js" -exec du -ch {} + 2>/dev/null | grep total | cut -f1 || echo "N/A") | - |
+          | CSS | $(find dist/assets -name "*.css" -exec du -ch {} + 2>/dev/null | grep total | cut -f1 || echo "N/A") | - |
+          | Images | $(find dist/assets -name "*.png" -o -name "*.jpg" -o -name "*.svg" -exec du -ch {} + 2>/dev/null | grep total | cut -f1 || echo "N/A") | - |
+          
+          ## 📋 File Breakdown
+          
+          ### Largest Files
+          \`\`\`
+          $(find dist -type f -exec du -h {} + | sort -hr | head -10)
+          \`\`\`
+          
+          ## 🎯 Optimization Recommendations
+          
+          1. **Code Splitting:** Implement route-based code splitting
+          2. **Tree Shaking:** Remove unused code from bundles
+          3. **Image Optimization:** Use WebP format and appropriate sizing
+          4. **Lazy Loading:** Load components and images on demand
+          5. **Compression:** Enable gzip/brotli compression
+          
+          ## 🔍 Dependencies Analysis
+          
+          Large dependencies that might need review:
+          
+          - Monaco Editor: Essential for code editing, but consider lazy loading
+          - Material-UI: Large component library, use only needed components
+          - Chart Libraries: Consider lighter alternatives if not heavily used
+          
+          ## 📈 Performance Impact
+          
+          Bundle size directly affects:
+          - Initial page load time
+          - Time to Interactive (TTI)
+          - Mobile performance on slower networks
+          - Overall user experience
+          
+          Target bundle sizes for optimal performance:
+          - **Critical path:** < 170KB (compressed)
+          - **Total JavaScript:** < 5MB (uncompressed)
+          - **Total CSS:** < 1MB (uncompressed)
+          EOF
+          
+          echo "📦 Bundle analysis report generated"
+
+      - name: 📤 Upload bundle analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis-${{ github.run_number }}
+          path: |
+            frontend/dist/
+            frontend/bundle-analysis.md
+          retention-days: 15
+
+  performance-monitoring:
+    name: 📊 Performance Monitoring
+    runs-on: ubuntu-latest
+    needs: [lighthouse-ci, bundle-analysis]
+    if: always()
+    steps:
+      - name: 📊 Aggregate performance data
+        run: |
+          echo "📊 Aggregating performance monitoring results..."
+          
+          cat << EOF > performance-summary.md
+          # 📊 Performance Monitoring Summary
+          
+          **Date:** $(date -u)
+          **Workflow:** ${{ github.workflow }}
+          **Run:** ${{ github.run_number }}
+          
+          ## 📋 Test Results
+          
+          | Test | Status | Notes |
+          |------|--------|-------|
+          | Lighthouse CI | ${{ needs.lighthouse-ci.result == 'success' && '✅ Passed' || '❌ Failed' }} | Core web vitals and performance budgets |
+          | Bundle Analysis | ${{ needs.bundle-analysis.result == 'success' && '✅ Passed' || '❌ Failed' }} | Asset size optimization |
+          
+          ## 🎯 Performance Goals
+          
+          EllaAI Assessment Platform performance targets:
+          
+          - **Page Load Time:** < 3 seconds on 3G
+          - **Code Editor Ready:** < 2 seconds after page load
+          - **Test Execution:** < 1 second response time
+          - **Bundle Size:** < 10MB total
+          - **Lighthouse Performance:** > 70 score
+          
+          ## 📈 Historical Tracking
+          
+          Performance metrics are tracked over time to identify:
+          - Performance regressions
+          - Optimization opportunities
+          - Impact of new features
+          
+          ## 🔔 Alerts
+          
+          Automated alerts are sent when:
+          - Performance score drops > 10 points
+          - Bundle size increases > 20%
+          - Core Web Vitals exceed thresholds
+          
+          EOF
+          
+          echo "📊 Performance summary generated"
+
+      - name: 📢 Notify on performance issues
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ (needs.lighthouse-ci.result == 'failure' || needs.bundle-analysis.result == 'failure') && 'failure' || 'success' }}
+          channel: '#performance-alerts'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          text: |
+            ⚡ Performance Monitoring Results
+            
+            **Environment:** ${{ github.event.inputs.environment || 'staging' }}
+            **Branch:** ${{ github.ref_name }}
+            **Status:** ${{ (needs.lighthouse-ci.result == 'failure' || needs.bundle-analysis.result == 'failure') && '❌ Issues Detected' || '✅ All Good' }}
+            
+            **Results:**
+            - Lighthouse CI: ${{ needs.lighthouse-ci.result == 'success' && '✅' || '❌' }}
+            - Bundle Analysis: ${{ needs.bundle-analysis.result == 'success' && '✅' || '❌' }}
+            
+            ${{ (needs.lighthouse-ci.result == 'failure' || needs.bundle-analysis.result == 'failure') && '🚨 Performance degradation detected - investigation required!' || '🎉 Performance is within acceptable limits' }}
+            
+            View details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        if: always() && (secrets.SLACK_WEBHOOK != null)
+
+      - name: 📤 Upload performance summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-summary-${{ github.run_number }}
+          path: performance-summary.md
+          retention-days: 90

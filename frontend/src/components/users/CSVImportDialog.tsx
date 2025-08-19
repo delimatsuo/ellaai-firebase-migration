@@ -263,7 +263,7 @@ const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
       } else if (result.successful === 0) {
         toast.error(`Failed to import all users`);
       } else {
-        toast.warning(`Imported ${result.successful} user(s), ${result.failed} failed`);
+        toast.error(`Imported ${result.successful} user(s), ${result.failed} failed`);
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to import users');
