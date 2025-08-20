@@ -519,5 +519,3 @@ export class ConnectionManager {
     return stats;
   }
 }
-
-export { FirestoreOptimizer };

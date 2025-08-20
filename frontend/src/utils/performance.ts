@@ -1,3 +1,5 @@
+import React from 'react';
+
 // Performance monitoring utilities
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
@@ -249,7 +251,6 @@ export function preloadCriticalResources() {
 
 // Lazy loading utility
 export function createLazyComponent(importFn: () => Promise<any>) {
-  const React = require('react');
   return React.lazy(() => 
     importFn().then((module: any) => ({
       default: module.default || module

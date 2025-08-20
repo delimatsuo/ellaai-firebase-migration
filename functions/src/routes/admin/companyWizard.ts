@@ -199,7 +199,7 @@ router.post('/create',
       if (!result.success) {
         res.status(400).json({
           success: false,
-          errors: result.errors
+          errors: result.errors as any
         } as CreateCompanyWizardResponse);
         return;
       }

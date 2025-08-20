@@ -47,11 +47,11 @@ export function withLazyLoading<T extends object>(
   Component: React.ComponentType<T>,
   fallback?: React.ReactNode
 ) {
-  return React.forwardRef<any, T>((props, ref) => (
+  return React.forwardRef<any, any>((props, ref) => (
     <Suspense fallback={fallback || <LoadingFallback />}>
-      <Component {...props} ref={ref} />
+      <Component {...(props as T)} ref={ref} />
     </Suspense>
-  ));
+  )) as React.ComponentType<T>;
 }
 
 // Route-level lazy components

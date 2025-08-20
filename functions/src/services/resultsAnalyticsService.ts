@@ -298,7 +298,7 @@ export class ResultsAnalyticsService {
 
       const assessmentData = assessment.data()!;
       const attemptData = attempts.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const completedAttempts = attemptData.filter(a => a.status === 'completed');
+      const completedAttempts = attemptData.filter(a => (a as any).status === 'completed');
 
       const analytics: AssessmentAnalytics = {
         assessmentId,
@@ -353,7 +353,7 @@ export class ResultsAnalyticsService {
 
       const snapshot = await query.get();
       const attempts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const completedAttempts = attempts.filter(a => a.status === 'completed');
+      const completedAttempts = attempts.filter(a => (a as any).status === 'completed');
 
       // Get company data
       const companyDoc = await this.db.collection('companies').doc(companyId).get();
@@ -367,8 +367,8 @@ export class ResultsAnalyticsService {
           endDate: options.endDate
         },
         overview: {
-          totalAssessments: new Set(attempts.map(a => a.assessmentId)).size,
-          totalCandidates: new Set(attempts.map(a => a.candidateId)).size,
+          totalAssessments: new Set(attempts.map(a => (a as any).assessmentId)).size,
+          totalCandidates: new Set(attempts.map(a => (a as any).candidateId)).size,
           completedAssessments: completedAttempts.length,
           averageScore: this.calculateAverageScore(completedAttempts),
           hiringRate: this.calculateHiringRate(completedAttempts),

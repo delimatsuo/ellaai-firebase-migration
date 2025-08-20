@@ -1,3 +1,5 @@
+import React from 'react';
+
 // Asset optimization utilities
 
 export class AssetOptimizer {
@@ -134,7 +136,7 @@ export class AssetOptimizer {
     link.href = href;
     link.onload = function() {
       this.onload = null;
-      this.rel = 'stylesheet';
+      (this as HTMLLinkElement).rel = 'stylesheet';
     };
     document.head.appendChild(link);
   }
@@ -188,7 +190,7 @@ export class AssetOptimizer {
       if (supportsWebP) {
         params.set('f', 'webp');
       }
-    } else if (format !== 'auto') {
+    } else {
       params.set('f', format);
     }
     
@@ -347,7 +349,6 @@ export function ProgressiveImage({
   className?: string;
   style?: React.CSSProperties;
 }) {
-  const React = require('react');
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [imageSrc, setImageSrc] = React.useState(placeholder);
   

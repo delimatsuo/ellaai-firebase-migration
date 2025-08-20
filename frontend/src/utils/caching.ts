@@ -1,3 +1,5 @@
+import React from 'react';
+
 // Advanced caching utilities for performance optimization
 
 interface CacheEntry<T> {
@@ -106,7 +108,7 @@ export class ApiCache {
     ttl: number = 300000 // 5 minutes default
   ): Promise<T> {
     // Check cache first
-    const cached = this.cache.get<T>(key);
+    const cached = this.cache.get(key) as T;
     if (cached) {
       return cached;
     }
@@ -160,7 +162,6 @@ export function useCachedApi<T>(
     refetchInterval?: number;
   } = {}
 ) {
-  const React = require('react');
   const [data, setData] = React.useState<T | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
@@ -174,7 +175,7 @@ export function useCachedApi<T>(
     setError(null);
     
     try {
-      const result = await apiCache.fetchWithCache(key, fetcher, options.ttl);
+      const result = await apiCache.fetchWithCache<T>(key, fetcher, options.ttl);
       setData(result);
     } catch (err) {
       setError(err as Error);

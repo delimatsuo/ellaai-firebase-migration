@@ -7,21 +7,32 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig({
   plugins: [
     react({
-      // Enable React Fast Refresh
+      // Enable React Fast Refresh with scheduler compatibility
       fastRefresh: true,
+      // Use automatic JSX runtime for React 18
+      jsxRuntime: 'automatic',
+      // Ensure proper JSX transformation
+      jsxImportSource: 'react'
     }),
-    // Bundle analyzer plugin
-    visualizer({
+    // Bundle analyzer plugin for development
+    process.env.ANALYZE && visualizer({
       filename: 'dist/bundle-analyzer.html',
       open: false,
       gzipSize: true,
       brotliSize: true,
+      template: 'treemap',
     }),
   ],
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      // Critical: Ensure consistent React scheduler resolution
+      'scheduler/tracing': 'scheduler/tracing-profiling',
+      // Resolve scheduler directly to prevent module resolution issues
+      'scheduler': 'scheduler',
     },
+    // Force single versions of React ecosystem to prevent scheduler conflicts
+    dedupe: ['react', 'react-dom', 'scheduler'],
   },
   server: {
     port: 3000,
@@ -35,59 +46,85 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: process.env.NODE_ENV === 'development',
-    minify: 'esbuild',
+    sourcemap: false,
+    minify: 'terser',
     target: 'es2020',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    },
     cssCodeSplit: true,
+    // Critical: Enable module preload for better performance
+    modulePreload: true,
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
     rollupOptions: {
+      // Critical: Prevent external dependencies in browser builds
+      external: [],
+      
       output: {
-        manualChunks(id) {
-          // Vendor chunk for core React libs
-          if (id.includes('node_modules/react') || 
-              id.includes('node_modules/react-dom') || 
-              id.includes('node_modules/react-router-dom')) {
-            return 'vendor-react';
-          }
+        // Optimized manual chunking for React scheduler compatibility
+        manualChunks: {
+          // Core React bundle - keep together for scheduler compatibility
+          'react-core': [
+            'react',
+            'react-dom',
+            'react-dom/client',
+            'react/jsx-runtime',
+            'scheduler'
+          ],
           
-          // Firebase chunk
-          if (id.includes('firebase')) {
-            return 'vendor-firebase';
-          }
+          // React ecosystem
+          'react-libs': [
+            'react-router-dom',
+            'react-hook-form',
+            '@hookform/resolvers',
+            'react-hot-toast',
+            'react-query',
+            'react-dropzone',
+            'react-beautiful-dnd',
+            'react-quill'
+          ],
           
-          // MUI chunk
-          if (id.includes('@mui') || id.includes('@emotion')) {
-            return 'vendor-mui';
-          }
+          // Firebase bundle
+          'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           
-          // Monaco Editor chunk (large)
-          if (id.includes('monaco-editor') || id.includes('@monaco-editor')) {
-            return 'vendor-monaco';
-          }
+          // MUI and styling
+          'mui': [
+            '@mui/material',
+            '@mui/icons-material',
+            '@mui/lab',
+            '@mui/x-data-grid',
+            '@mui/x-date-pickers',
+            '@emotion/react',
+            '@emotion/styled'
+          ],
           
-          // Charts chunk
-          if (id.includes('recharts') || id.includes('d3-')) {
-            return 'vendor-charts';
-          }
+          // Charts and visualization
+          'charts': ['recharts', 'framer-motion'],
           
-          // Form handling
-          if (id.includes('react-hook-form') || 
-              id.includes('@hookform') || 
-              id.includes('zod')) {
-            return 'vendor-forms';
-          }
+          // Form validation and utilities
+          'utils': [
+            'zod',
+            'axios',
+            'date-fns',
+            'papaparse',
+            'zustand'
+          ],
           
-          // Other large third-party libraries
-          if (id.includes('node_modules')) {
-            return 'vendor-misc';
-          }
+          // Monaco Editor (large, load separately)
+          'monaco': ['monaco-editor', '@monaco-editor/react']
         },
-        // Optimize chunk sizes
+        
+        // Optimize chunk file names for caching
         chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId
-            ? chunkInfo.facadeModuleId.split('/').pop()
-            : 'chunk';
           return `assets/js/[name]-[hash].js`;
         },
+        
+        // Optimize asset file names
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.');
           const ext = info[info.length - 1];
@@ -102,28 +139,74 @@ export default defineConfig({
           }
           return `assets/[ext]/[name]-[hash][extname]`;
         },
+        
+        // Entry file naming
+        entryFileNames: 'assets/js/[name]-[hash].js',
       },
     },
-    // Performance optimizations
-    chunkSizeWarningLimit: 1000, // 1MB warning
+    // Performance optimization settings
+    chunkSizeWarningLimit: 500, // Reduced from 1000KB to 500KB
+    reportCompressedSize: true,
   },
+  
   define: {
     'process.env': {},
+    // Critical: Ensure NODE_ENV is properly defined for React scheduler
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    // Global flag for scheduler polyfill
+    __SCHEDULER_POLYFILL_ENABLED__: JSON.stringify(true),
+    // Ensure jsxDEV is available in production
+    'import.meta.env.DEV': JSON.stringify(false),
+    'import.meta.env.PROD': JSON.stringify(true),
   },
-  // Optimize dependencies
+  
+  // Critical optimization for React scheduler compatibility
   optimizeDeps: {
+    // Include React core modules for proper pre-bundling
     include: [
       'react',
       'react-dom',
+      'react-dom/client',
+      'react/jsx-runtime',
+      'scheduler',
       'react-router-dom',
       '@mui/material',
       '@mui/icons-material',
+      '@emotion/react',
+      '@emotion/styled',
       'firebase/app',
       'firebase/auth',
       'firebase/firestore',
+      'react-hot-toast',
     ],
+    
+    // Exclude large modules for lazy loading
     exclude: [
-      '@monaco-editor/react', // Lazy load Monaco
+      '@monaco-editor/react',
+      'monaco-editor',
     ],
+    
+    // Force single instance of React ecosystem
+    dedupe: ['react', 'react-dom', 'scheduler'],
+    
+    // Force pre-bundling to prevent runtime module resolution issues
+    force: true,
+    
+    // Optimizer options for better scheduler handling
+    esbuildOptions: {
+      // Preserve React scheduler exports
+      keepNames: true,
+      // Target modern browsers for better performance
+      target: 'es2020',
+    },
+  },
+  
+  // Enhanced SSR handling for better compatibility
+  ssr: {
+    // Externalize scheduler for SSR
+    external: process.env.NODE_ENV === 'production' ? [] : ['scheduler'],
+    
+    // No external dependencies for browser builds
+    noExternal: process.env.NODE_ENV === 'production' ? true : false,
   },
 });

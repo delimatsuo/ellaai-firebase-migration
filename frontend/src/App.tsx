@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -10,46 +10,101 @@ import { ActingAsProvider } from './contexts/ActingAsContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
-// Pages
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import AssessmentsPage from './pages/AssessmentsPage';
-import AssessmentTakePage from './pages/AssessmentTakePage';
-import AssessmentResultsPage from './pages/AssessmentResultsPage';
-import ProfilePage from './pages/ProfilePage';
-import CompanyDashboardPage from './pages/company/CompanyDashboardPage';
-import CreateAssessmentPage from './pages/company/CreateAssessmentPage';
-import CandidatesPage from './pages/company/CandidatesPage';
-import NotFoundPage from './pages/NotFoundPage';
+// Enhanced loading component with better UX
+const LoadingSpinner: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => (
+  <div style={{ 
+    display: 'flex', 
+    flexDirection: 'column',
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: '100vh',
+    fontFamily: 'Roboto, sans-serif'
+  }}>
+    <div style={{
+      width: '40px',
+      height: '40px',
+      border: '4px solid #e3f2fd',
+      borderTop: '4px solid #1976d2',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite',
+      marginBottom: '16px'
+    }} />
+    <p style={{ color: '#666', fontSize: '14px' }}>{message}</p>
+    <style>
+      {`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}
+    </style>
+  </div>
+);
 
-// Admin Pages
-import AdminLayout from './components/admin/AdminLayout';
-import SystemAdminDashboardPage from './pages/admin/SystemAdminDashboardPage';
-import CreateCompanyPage from './pages/admin/CreateCompanyPage';
-import DatabaseQueryPage from './pages/admin/DatabaseQueryPage';
-import UserManagementPage from './pages/admin/UserManagementPage';
-import AccountManagementPage from './pages/admin/AccountManagementPage';
-import AuditLogPage from './pages/admin/AuditLogPage';
-import SystemHealthPage from './pages/admin/SystemHealthPage';
-import EllaRecruiterDashboard from './pages/support/EllaRecruiterDashboard';
+// Lazy load pages for optimal code splitting
+// Core pages (loaded immediately)
+const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
+const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage'));
+const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 
-// Using our enterprise theme
+// Dashboard pages (grouped for preloading)
+const DashboardPage = React.lazy(() => 
+  import('./pages/DashboardPage').then(module => ({ default: module.default }))
+);
+
+// Assessment pages (grouped together)
+const AssessmentsPage = React.lazy(() => import('./pages/AssessmentsPage'));
+const AssessmentTakePage = React.lazy(() => import('./pages/AssessmentTakePage'));
+const AssessmentResultsPage = React.lazy(() => import('./pages/AssessmentResultsPage'));
+
+// Profile page (separate chunk)
+const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
+
+// Company pages (grouped together)
+const CompanyDashboardPage = React.lazy(() => import('./pages/company/CompanyDashboardPage'));
+const CreateAssessmentPage = React.lazy(() => import('./pages/company/CreateAssessmentPage'));
+const CandidatesPage = React.lazy(() => import('./pages/company/CandidatesPage'));
+
+// Admin pages (grouped together - heavy features)
+const AdminLayout = React.lazy(() => import('./components/admin/AdminLayout'));
+const SystemAdminDashboardPage = React.lazy(() => import('./pages/admin/SystemAdminDashboardPage'));
+const CreateCompanyPage = React.lazy(() => import('./pages/admin/CreateCompanyPage'));
+const DatabaseQueryPage = React.lazy(() => import('./pages/admin/DatabaseQueryPage'));
+const UserManagementPage = React.lazy(() => import('./pages/admin/UserManagementPage'));
+const AccountManagementPage = React.lazy(() => import('./pages/admin/AccountManagementPage'));
+const AuditLogPage = React.lazy(() => import('./pages/admin/AuditLogPage'));
+const SystemHealthPage = React.lazy(() => import('./pages/admin/SystemHealthPage'));
+const EllaRecruiterDashboard = React.lazy(() => import('./pages/support/EllaRecruiterDashboard'));
+
+// Preload critical routes based on user role
+const preloadRoutes = (role?: string) => {
+  if (role === 'hiring_manager' || role === 'recruiter') {
+    // Preload company dashboard
+    import('./pages/company/CompanyDashboardPage');
+    import('./pages/company/CreateAssessmentPage');
+  } else if (role === 'candidate') {
+    // Preload assessments page
+    import('./pages/AssessmentsPage');
+    import('./pages/DashboardPage');
+  } else if (role === 'admin' || role === 'system_admin') {
+    // Preload admin dashboard
+    import('./pages/admin/SystemAdminDashboardPage');
+    import('./components/admin/AdminLayout');
+  }
+};
 
 const AppContent: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
+
+  // Preload routes based on user profile role
+  React.useEffect(() => {
+    if (userProfile) {
+      preloadRoutes(userProfile.role);
+    }
+  }, [userProfile]);
 
   if (loading) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
-      }}>
-        Loading...
-      </div>
-    );
+    return <LoadingSpinner message="Authenticating..." />;
   }
 
   return (
@@ -58,82 +113,189 @@ const AppContent: React.FC = () => {
         {/* Public routes */}
         <Route 
           path="/login" 
-          element={user ? <Navigate to="/" replace /> : <LoginPage />} 
+          element={
+            <Suspense fallback={<LoadingSpinner message="Loading login..." />}>
+              <LoginPage />
+            </Suspense>
+          } 
         />
         <Route 
           path="/register" 
-          element={user ? <Navigate to="/" replace /> : <RegisterPage />} 
+          element={
+            <Suspense fallback={<LoadingSpinner message="Loading registration..." />}>
+              <RegisterPage />
+            </Suspense>
+          } 
         />
 
-        {/* Protected routes */}
-        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<DashboardPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          
-          {/* Candidate routes */}
-          <Route path="assessments" element={<AssessmentsPage />} />
-          <Route path="assessments/:id" element={<AssessmentTakePage />} />
-          <Route path="assessments/:id/results" element={<AssessmentResultsPage />} />
-          
+        {/* Protected routes with lazy loading */}
+        <Route 
+          path="/" 
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          {/* Dashboard */}
+          <Route 
+            index 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading dashboard..." />}>
+                <DashboardPage />
+              </Suspense>
+            } 
+          />
+
+          {/* Assessment routes */}
+          <Route 
+            path="assessments" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading assessments..." />}>
+                <AssessmentsPage />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="assessment/:id" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading assessment..." />}>
+                <AssessmentTakePage />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="assessment/:id/results" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading results..." />}>
+                <AssessmentResultsPage />
+              </Suspense>
+            } 
+          />
+
+          {/* Profile */}
+          <Route 
+            path="profile" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading profile..." />}>
+                <ProfilePage />
+              </Suspense>
+            } 
+          />
+
           {/* Company routes */}
           <Route 
             path="company" 
             element={
-              <ProtectedRoute allowedRoles={['recruiter', 'hiring_manager', 'admin']}>
+              <Suspense fallback={<LoadingSpinner message="Loading company dashboard..." />}>
                 <CompanyDashboardPage />
-              </ProtectedRoute>
+              </Suspense>
             } 
           />
           <Route 
-            path="company/assessments/create" 
+            path="company/create-assessment" 
             element={
-              <ProtectedRoute allowedRoles={['recruiter', 'hiring_manager', 'admin']}>
+              <Suspense fallback={<LoadingSpinner message="Loading assessment creator..." />}>
                 <CreateAssessmentPage />
-              </ProtectedRoute>
+              </Suspense>
             } 
           />
           <Route 
             path="company/candidates" 
             element={
-              <ProtectedRoute allowedRoles={['recruiter', 'hiring_manager', 'admin']}>
+              <Suspense fallback={<LoadingSpinner message="Loading candidates..." />}>
                 <CandidatesPage />
-              </ProtectedRoute>
+              </Suspense>
             } 
           />
         </Route>
 
-        {/* Admin routes */}
+        {/* Admin routes with nested lazy loading */}
         <Route 
-          path="/admin" 
+          path="/admin/*" 
           element={
-            <ProtectedRoute allowedRoles={['admin', 'system_admin']}>
-              <AdminLayout />
+            <ProtectedRoute allowedRoles={["admin", "system_admin"]}>
+              <Suspense fallback={<LoadingSpinner message="Loading admin panel..." />}>
+                <AdminLayout />
+              </Suspense>
             </ProtectedRoute>
           }
         >
-          <Route index element={<SystemAdminDashboardPage />} />
-          <Route path="create-company" element={<CreateCompanyPage />} />
-          <Route path="database" element={<DatabaseQueryPage />} />
-          <Route path="users" element={<UserManagementPage />} />
-          <Route path="accounts" element={<AccountManagementPage />} />
-          <Route path="audit" element={<AuditLogPage />} />
-          <Route path="health" element={<SystemHealthPage />} />
+          <Route 
+            index 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading admin dashboard..." />}>
+                <SystemAdminDashboardPage />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="create-company" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading company creator..." />}>
+                <CreateCompanyPage />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="database-query" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading database tools..." />}>
+                <DatabaseQueryPage />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="user-management" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading user management..." />}>
+                <UserManagementPage />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="account-management" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading account management..." />}>
+                <AccountManagementPage />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="audit-log" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading audit logs..." />}>
+                <AuditLogPage />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="system-health" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading system health..." />}>
+                <SystemHealthPage />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="ella-recruiter" 
+            element={
+              <Suspense fallback={<LoadingSpinner message="Loading recruiter tools..." />}>
+                <EllaRecruiterDashboard />
+              </Suspense>
+            } 
+          />
         </Route>
 
-        {/* Support routes for Ella Recruiters */}
+        {/* Fallback routes */}
         <Route 
-          path="/support" 
+          path="*" 
           element={
-            <ProtectedRoute allowedRoles={['admin', 'system_admin']}>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="dashboard" element={<EllaRecruiterDashboard />} />
-        </Route>
-
-        {/* 404 route */}
-        <Route path="*" element={<NotFoundPage />} />
+            <Suspense fallback={<LoadingSpinner message="Loading..." />}>
+              <NotFoundPage />
+            </Suspense>
+          } 
+        />
       </Routes>
     </Router>
   );
@@ -146,34 +308,30 @@ const App: React.FC = () => {
       <AuthProvider>
         <ActingAsProvider>
           <AppContent />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              color: '#1e293b',
-              border: '1px solid rgba(107, 70, 193, 0.2)',
-              borderRadius: '12px',
-              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.37)',
-            },
-            success: {
-              duration: 3000,
-              iconTheme: {
-                primary: '#10B981',
-                secondary: '#fff',
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#363636',
+                color: '#fff',
               },
-            },
-            error: {
-              duration: 5000,
-              iconTheme: {
-                primary: '#EF4444',
-                secondary: '#fff',
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: '#4caf50',
+                  secondary: '#fff',
+                },
               },
-            },
-          }}
-        />
+              error: {
+                duration: 5000,
+                iconTheme: {
+                  primary: '#f44336',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
         </ActingAsProvider>
       </AuthProvider>
     </ThemeProvider>

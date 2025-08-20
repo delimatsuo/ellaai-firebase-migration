@@ -1,3 +1,4 @@
+// Production build - v1.0.1
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
@@ -63,20 +64,38 @@ export const initAnalytics = async () => {
   return null;
 };
 
-// Connect to emulators in development
-if (import.meta.env.DEV && !globalThis.__FIREBASE_EMULATORS_CONNECTED__) {
-  // Prevent multiple connections in hot reload
-  globalThis.__FIREBASE_EMULATORS_CONNECTED__ = true;
+// Connect to emulators ONLY in development with explicit check
+if (import.meta.env.MODE === 'development' && import.meta.env.DEV === true) {
+  // Extra safety check - ensure we're really in dev mode
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || 
+     window.location.hostname === '127.0.0.1' ||
+     window.location.hostname.startsWith('192.168.'));
   
-  try {
-    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-    connectFirestoreEmulator(db, 'localhost', 8080);
-    connectFunctionsEmulator(functions, 'localhost', 5001);
-    connectStorageEmulator(storage, 'localhost', 9199);
-    console.log('Connected to Firebase emulators');
-  } catch (error) {
-    console.warn('Failed to connect to emulators:', error);
+  if (isLocalhost && !((globalThis as any).__FIREBASE_EMULATORS_CONNECTED__)) {
+    // Prevent multiple connections in hot reload
+    (globalThis as any).__FIREBASE_EMULATORS_CONNECTED__ = true;
+    
+    try {
+      connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+      connectFirestoreEmulator(db, 'localhost', 8080);
+      connectFunctionsEmulator(functions, 'localhost', 5001);
+      connectStorageEmulator(storage, 'localhost', 9199);
+      console.log('Connected to Firebase emulators');
+    } catch (error) {
+      console.warn('Failed to connect to emulators:', error);
+    }
   }
+}
+
+// Log environment for debugging
+if (typeof window !== 'undefined') {
+  console.log('🔥 Firebase Configuration:');
+  console.log('  - Environment:', import.meta.env.MODE);
+  console.log('  - Project ID:', firebaseConfig.projectId);
+  console.log('  - Auth Domain:', firebaseConfig.authDomain);
+  console.log('  - API Key configured:', !!firebaseConfig.apiKey && firebaseConfig.apiKey !== 'YOUR_API_KEY');
+  console.log('  - Using emulators:', import.meta.env.MODE === 'development');
 }
 
 // Helper function to handle Firebase errors

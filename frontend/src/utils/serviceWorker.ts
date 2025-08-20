@@ -1,5 +1,11 @@
 // Service Worker registration and management
 
+declare global {
+  interface Window {
+    gtag: (...args: any[]) => void;
+  }
+}
+
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
   window.location.hostname === '[::1]' ||
@@ -280,7 +286,7 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
   
   // Track installation in analytics
-  if (window.gtag) {
+  if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', 'pwa_install', {
       event_category: 'engagement',
       event_label: 'PWA Installation'

@@ -15,8 +15,8 @@ interface CachingOptions {
 
 // Default cache key generator
 function defaultKeyGenerator(req: Request): string {
-  const { method, path, query, user } = req;
-  const userId = (user as any)?.uid || 'anonymous';
+  const { method, path, query } = req;
+  const userId = ((req as any).user as any)?.uid || 'anonymous';
   
   return `${method}:${path}:${JSON.stringify(query)}:${userId}`;
 }

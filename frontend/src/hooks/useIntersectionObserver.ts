@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface UseIntersectionObserverOptions {
   threshold?: number | number[];
@@ -57,5 +57,5 @@ export function LazyComponent({
   
   const shouldRender = isIntersecting || hasTriggered;
 
-  return React.createElement('div', { ref }, shouldRender ? children : fallback);
+  return React.createElement('div', { ref: ref as any }, shouldRender ? children : fallback);
 }
