@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { auth } from '@/firebase/config';
+import { auth } from '../firebase/config';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 

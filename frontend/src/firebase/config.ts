@@ -1,49 +1,80 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getAnalytics } from 'firebase/analytics';
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-};
-
-// Validate required configuration
-const requiredKeys = [
-  'VITE_FIREBASE_API_KEY',
-  'VITE_FIREBASE_AUTH_DOMAIN',
-  'VITE_FIREBASE_PROJECT_ID',
-  'VITE_FIREBASE_STORAGE_BUCKET',
-  'VITE_FIREBASE_MESSAGING_SENDER_ID',
-  'VITE_FIREBASE_APP_ID',
-];
-
-const missingKeys = requiredKeys.filter(key => !import.meta.env[key]);
-
-if (missingKeys.length > 0) {
-  throw new Error(
-    `Missing required Firebase environment variables: ${missingKeys.join(', ')}`
-  );
+// Use Firebase from CDN (loaded in index.html) to bypass bundling issues
+declare global {
+  interface Window {
+    firebase: any;
+    firebaseApp: any;
+    firebaseAuth: any;
+    firebaseDb: any;
+  }
 }
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+let app: any;
+let auth: any;
+let db: any;
 
-// Initialize Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Check if Firebase is loaded from CDN
+if (typeof window !== 'undefined' && window.firebaseAuth) {
+  console.log('Using Firebase from CDN');
+  app = window.firebaseApp;
+  auth = window.firebaseAuth;
+  db = window.firebaseDb;
+} else {
+  console.log('Firebase not yet loaded from CDN, creating mock objects');
+  
+  // Mock implementations until CDN loads
+  app = { name: '[DEFAULT]' };
+  auth = {
+    currentUser: null,
+    onAuthStateChanged: (callback: Function) => {
+      // Wait for Firebase to load from CDN
+      const checkInterval = setInterval(() => {
+        if (window.firebaseAuth) {
+          clearInterval(checkInterval);
+          callback(window.firebaseAuth.currentUser);
+        }
+      }, 100);
+      return () => clearInterval(checkInterval);
+    },
+    signInWithEmailAndPassword: async (email: string, password: string) => {
+      // Wait for Firebase to load
+      while (!window.firebaseAuth) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      return window.firebaseAuth.signInWithEmailAndPassword(email, password);
+    },
+    createUserWithEmailAndPassword: async (email: string, password: string) => {
+      while (!window.firebaseAuth) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      return window.firebaseAuth.createUserWithEmailAndPassword(email, password);
+    },
+    signOut: async () => {
+      if (window.firebaseAuth) {
+        return window.firebaseAuth.signOut();
+      }
+      return Promise.resolve();
+    }
+  };
+  db = {
+    collection: (name: string) => ({
+      doc: (id: string) => ({
+        get: async () => {
+          while (!window.firebaseDb) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          return window.firebaseDb.collection(name).doc(id).get();
+        },
+        set: async (data: any) => {
+          while (!window.firebaseDb) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          return window.firebaseDb.collection(name).doc(id).set(data);
+        }
+      })
+    })
+  };
+}
 
-// Initialize Analytics only in production and if measurement ID is provided
-export const analytics = 
-  import.meta.env.PROD && firebaseConfig.measurementId 
-    ? getAnalytics(app) 
-    : null;
-
-// Export the app instance
+export { auth, db };
+export const analytics = null;
 export default app;

@@ -65,8 +65,8 @@ import {
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 
-import { CandidateResult, QuestionResult, ProctoringViolation } from '@/types/analytics';
-import { resultsService } from '@/services/analytics/resultsService';
+import { CandidateResult, QuestionResult, ProctoringViolation } from '../../types/analytics';
+import { resultsService } from '../../services/analytics/resultsService';
 import { SkillsRadarChart, PerformanceTrendChart } from './AnalyticsCharts';
 
 interface TabPanelProps {

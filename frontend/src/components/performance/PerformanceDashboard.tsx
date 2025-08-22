@@ -30,8 +30,8 @@ import {
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { PerformanceMonitor, usePerformanceMonitor } from '@/utils/performance';
-import { getCacheStats, clearServiceWorkerCache } from '@/utils/serviceWorker';
+import { PerformanceMonitor, usePerformanceMonitor } from '../../utils/performance';
+import { getCacheStats, clearServiceWorkerCache } from '../../utils/serviceWorker';
 
 interface PerformanceMetrics {
   lcp: number;
@@ -67,6 +67,7 @@ export function PerformanceDashboard() {
       
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isMonitoring]);
 
   const loadPerformanceData = async () => {

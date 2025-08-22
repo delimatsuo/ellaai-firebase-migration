@@ -53,6 +53,14 @@ const TakeAssessment: React.FC = () => {
       setLoading(true);
       setError(null);
       
+      if (!assessmentId) {
+        throw new Error('Assessment ID is required');
+      }
+      
+      if (!user) {
+        throw new Error('User authentication required');
+      }
+      
       // Load assessment data
       const response = await fetch(`/api/assessments/${assessmentId}`, {
         credentials: 'include',

@@ -250,8 +250,8 @@ const SystemAdminDashboardPage: React.FC = () => {
                   <Typography variant="body2" sx={{ color: '#ccc' }}>
                     Avg Response Time
                   </Typography>
-                  <Typography variant="caption" sx={{ color: metrics?.averageResponseTime > 500 ? '#ff9800' : '#4caf50' }}>
-                    {metrics?.averageResponseTime > 500 ? 'Above threshold' : 'Within threshold'}
+                  <Typography variant="caption" sx={{ color: (metrics?.averageResponseTime || 0) > 500 ? '#ff9800' : '#4caf50' }}>
+                    {(metrics?.averageResponseTime || 0) > 500 ? 'Above threshold' : 'Within threshold'}
                   </Typography>
                 </Box>
               </Box>
@@ -273,8 +273,8 @@ const SystemAdminDashboardPage: React.FC = () => {
                   <Typography variant="body2" sx={{ color: '#ccc' }}>
                     System Uptime
                   </Typography>
-                  <Typography variant="caption" sx={{ color: metrics?.uptime >= 99.9 ? '#4caf50' : '#ff9800' }}>
-                    {metrics?.uptime >= 99.9 ? 'Meeting SLA' : 'Below SLA target'}
+                  <Typography variant="caption" sx={{ color: (metrics?.uptime || 0) >= 99.9 ? '#4caf50' : '#ff9800' }}>
+                    {(metrics?.uptime || 0) >= 99.9 ? 'Meeting SLA' : 'Below SLA target'}
                   </Typography>
                 </Box>
               </Box>

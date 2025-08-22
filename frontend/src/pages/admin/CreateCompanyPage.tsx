@@ -19,7 +19,7 @@ import {
 } from '@mui/icons-material';
 import CompanyCreationWizard from '../../components/admin/CompanyCreationWizard';
 import { CompanyCreationResult } from '../../types/admin';
-import { glassStyles } from '../../theme/theme';
+import { createAdminGradient, adminColors } from '../../theme/unifiedTheme';
 import toast from 'react-hot-toast';
 
 const CreateCompanyPage: React.FC = () => {
@@ -64,14 +64,14 @@ const CreateCompanyPage: React.FC = () => {
           <Typography variant="h3" sx={{ 
             fontWeight: 'bold', 
             mb: 2,
-            background: 'linear-gradient(135deg, #6B46C1 0%, #9333EA 100%)',
+            background: createAdminGradient('header'),
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}>
             Create New Company
           </Typography>
-          <Typography variant="h6" sx={{ color: '#64748b', mb: 4 }}>
+          <Typography variant="h6" sx={{ color: adminColors.textSecondary, mb: 4 }}>
             Set up a new company account with complete onboarding and configuration
           </Typography>
           
@@ -81,15 +81,15 @@ const CreateCompanyPage: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={() => setWizardOpen(true)}
             sx={{
-              background: 'linear-gradient(135deg, #6B46C1 0%, #9333EA 100%)',
+              background: createAdminGradient('button'),
               px: 4,
               py: 2,
               fontSize: '1.1rem',
-              borderRadius: 3,
-              boxShadow: '0 8px 32px rgba(107, 70, 193, 0.3)',
+              borderRadius: 2,
+              boxShadow: theme.shadows[3],
               '&:hover': {
                 transform: 'translateY(-2px)',
-                boxShadow: '0 12px 40px rgba(107, 70, 193, 0.4)',
+                boxShadow: theme.shadows[4],
               },
             }}
           >
@@ -102,13 +102,16 @@ const CreateCompanyPage: React.FC = () => {
           {features.map((feature, index) => (
             <Grid item xs={12} md={6} key={index}>
               <Card sx={{
-                ...glassStyles.light,
+                backgroundColor: theme.palette.background.paper,
                 height: '100%',
-                border: '1px solid #e2e8f0',
+                border: `1px solid ${adminColors.border}`,
+                borderRadius: 3,
+                boxShadow: theme.shadows[2],
                 transition: 'all 0.3s ease-in-out',
                 '&:hover': {
                   transform: 'translateY(-4px)',
-                  boxShadow: '0 12px 40px rgba(107, 70, 193, 0.15)',
+                  boxShadow: theme.shadows[4],
+                  backgroundColor: theme.palette.admin.cardHover,
                 },
               }}>
                 <CardContent sx={{ p: 4 }}>
@@ -124,7 +127,7 @@ const CreateCompanyPage: React.FC = () => {
                       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                         {feature.title}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#64748b' }}>
+                      <Typography variant="body2" sx={{ color: adminColors.textSecondary }}>
                         {feature.description}
                       </Typography>
                     </Box>
@@ -138,15 +141,17 @@ const CreateCompanyPage: React.FC = () => {
         {/* Last Created Company */}
         {lastCreatedCompany && (
           <Card sx={{
-            ...glassStyles.medium,
-            border: '2px solid #4ade80',
-            bgcolor: alpha('#4ade80', 0.05),
+            backgroundColor: theme.palette.background.paper,
+            border: `2px solid ${adminColors.success}`,
+            bgcolor: alpha(adminColors.success, 0.05),
+            borderRadius: 3,
+            boxShadow: theme.shadows[2],
           }}>
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h6" sx={{ 
                 fontWeight: 'bold', 
                 mb: 2,
-                color: '#059669',
+                color: adminColors.success,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
@@ -157,25 +162,25 @@ const CreateCompanyPage: React.FC = () => {
               
               <Grid container spacing={2}>
                 <Grid item xs={12} md={3}>
-                  <Typography variant="body2" sx={{ color: '#64748b' }}>Company ID</Typography>
+                  <Typography variant="body2" sx={{ color: adminColors.textSecondary }}>Company ID</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
                     {lastCreatedCompany.companyId}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={3}>
-                  <Typography variant="body2" sx={{ color: '#64748b' }}>Admin User ID</Typography>
+                  <Typography variant="body2" sx={{ color: adminColors.textSecondary }}>Admin User ID</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
                     {lastCreatedCompany.adminUserId}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={3}>
-                  <Typography variant="body2" sx={{ color: '#64748b' }}>Login URL</Typography>
+                  <Typography variant="body2" sx={{ color: adminColors.textSecondary }}>Login URL</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 'bold', wordBreak: 'break-all' }}>
                     {lastCreatedCompany.loginUrl}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={3}>
-                  <Typography variant="body2" sx={{ color: '#64748b' }}>Temp Password</Typography>
+                  <Typography variant="body2" sx={{ color: adminColors.textSecondary }}>Temp Password</Typography>
                   <Typography variant="body1" sx={{ 
                     fontFamily: 'monospace',
                     bgcolor: alpha('#000', 0.1),

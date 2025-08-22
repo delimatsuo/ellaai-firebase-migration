@@ -362,7 +362,7 @@ const Layout: React.FC = () => {
                 src={userProfile?.photoURL || user?.photoURL || undefined}
                 onClick={handleMenuOpen}
               >
-                {(userProfile?.displayName || user?.email || 'U')[0].toUpperCase()}
+                {((userProfile?.displayName || user?.email || 'U')[0] || 'U').toUpperCase()}
               </Avatar>
             </Box>
           </Box>

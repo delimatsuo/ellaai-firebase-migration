@@ -29,7 +29,7 @@ import {
   Assessment
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CandidateResultDetail, ReportGenerator } from '@/components/analytics';
+import { CandidateResultDetail, ReportGenerator } from '../components/analytics';
 
 interface QuestionResult {
   id: string;

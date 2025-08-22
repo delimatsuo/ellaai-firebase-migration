@@ -107,6 +107,9 @@ export function verifyCSRFToken(token: string): boolean {
     if (parts.length !== 3) return false;
     
     const [timestamp, randomBytes, signature] = parts;
+    
+    if (!timestamp || !randomBytes || !signature) return false;
+    
     const tokenWithoutSig = `${timestamp}.${randomBytes}`;
     
     // Verify signature

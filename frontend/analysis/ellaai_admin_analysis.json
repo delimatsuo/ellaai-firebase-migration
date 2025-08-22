@@ -1,0 +1,128 @@
+{
+  "login_page": {
+    "security_features": [
+      "Password field properly masked"
+    ],
+    "ux_issues": [],
+    "missing_features": [
+      "Password recovery link",
+      "Enterprise SSO (SAML/OIDC) not visible",
+      "Multi-factor authentication not visible"
+    ],
+    "strengths": []
+  },
+  "main_application": {
+    "accessible_pages": [
+      {
+        "url": "https://ellaai-platform-prod.web.app/dashboard",
+        "final_url": "https://ellaai-platform-prod.web.app/dashboard",
+        "title": "EllaAI - AI-Powered Recruitment Platform"
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/demo",
+        "final_url": "https://ellaai-platform-prod.web.app/demo",
+        "title": "EllaAI - AI-Powered Recruitment Platform"
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/public",
+        "final_url": "https://ellaai-platform-prod.web.app/public",
+        "title": "EllaAI - AI-Powered Recruitment Platform"
+      }
+    ],
+    "navigation_structure": [],
+    "inferred_features": [],
+    "missing_admin_features": [
+      {
+        "category": "User Management",
+        "features": [
+          "User list with search/filter",
+          "User role management",
+          "User activity logs",
+          "Bulk user operations",
+          "User invitation system"
+        ]
+      },
+      {
+        "category": "Company/Tenant Management",
+        "features": [
+          "Company profiles",
+          "Subscription management",
+          "Usage analytics per tenant",
+          "Custom branding controls",
+          "Data isolation monitoring"
+        ]
+      },
+      {
+        "category": "Assessment Management",
+        "features": [
+          "Assessment template library",
+          "Custom assessment creation",
+          "Performance analytics",
+          "Candidate pipeline view",
+          "Assessment results dashboard"
+        ]
+      },
+      {
+        "category": "System Administration",
+        "features": [
+          "System health monitoring",
+          "Error logs and alerts",
+          "API usage statistics",
+          "Security audit logs",
+          "Backup and restore tools"
+        ]
+      },
+      {
+        "category": "Analytics & Reporting",
+        "features": [
+          "Usage metrics dashboard",
+          "Revenue analytics",
+          "User engagement metrics",
+          "Custom report builder",
+          "Data export capabilities"
+        ]
+      }
+    ]
+  },
+  "recommendations": {
+    "critical": [],
+    "high_priority": [],
+    "medium_priority": [],
+    "low_priority": []
+  },
+  "public_pages": {
+    "accessible_content": [
+      {
+        "url": "https://ellaai-platform-prod.web.app/about",
+        "title": "EllaAI - AI-Powered Recruitment Platform",
+        "accessible": true
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/features",
+        "title": "EllaAI - AI-Powered Recruitment Platform",
+        "accessible": true
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/pricing",
+        "title": "EllaAI - AI-Powered Recruitment Platform",
+        "accessible": true
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/contact",
+        "title": "EllaAI - AI-Powered Recruitment Platform",
+        "accessible": true
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/help",
+        "title": "EllaAI - AI-Powered Recruitment Platform",
+        "accessible": true
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/docs",
+        "title": "EllaAI - AI-Powered Recruitment Platform",
+        "accessible": true
+      }
+    ],
+    "platform_insights": []
+  }
+}

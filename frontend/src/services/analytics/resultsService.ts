@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { auth } from '@/firebase/config';
+import { auth } from '../../firebase/config';
 import {
   CandidateResult,
   AssessmentAnalytics,
@@ -9,7 +9,7 @@ import {
   ProgressTracking,
   DashboardConfig,
   RealTimeUpdate
-} from '@/types/analytics';
+} from '../../types/analytics';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 

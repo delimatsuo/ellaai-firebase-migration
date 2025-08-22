@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { CircularProgress, Box } from '@mui/material';
-import { createLazyComponent } from '@/utils/performance';
+import { createLazyComponent } from '../utils/performance';
 
 // Loading fallback component
 const LoadingFallback = ({ message = 'Loading...' }: { message?: string }) => (
@@ -19,27 +19,27 @@ const LoadingFallback = ({ message = 'Loading...' }: { message?: string }) => (
 
 // Lazy load heavy components
 export const LazyAssessmentExecution = createLazyComponent(
-  () => import('@/components/assessment/AssessmentExecution')
+  () => import('./assessment/AssessmentExecution')
 );
 
 export const LazyCodeEditor = createLazyComponent(
-  () => import('@/components/assessment/CodeEditor')
+  () => import('./assessment/CodeEditor')
 );
 
 export const LazyResultsDashboard = createLazyComponent(
-  () => import('@/components/analytics/ResultsDashboard')
+  () => import('./analytics/ResultsDashboard')
 );
 
 export const LazyPerformanceChart = createLazyComponent(
-  () => import('@/components/charts/PerformanceChart')
+  () => import('./charts/PerformanceChart')
 );
 
 export const LazyKanbanBoard = createLazyComponent(
-  () => import('@/components/candidates/KanbanBoard')
+  () => import('./candidates/KanbanBoard')
 );
 
 export const LazyQueryBuilder = createLazyComponent(
-  () => import('@/components/admin/QueryBuilder')
+  () => import('./admin/QueryBuilder')
 );
 
 // Higher-order component for lazy loading with error boundary
@@ -56,64 +56,64 @@ export function withLazyLoading<T extends object>(
 
 // Route-level lazy components
 export const LazyDashboard = createLazyComponent(
-  () => import('@/pages/DashboardPage')
+  () => import('../pages/DashboardPage')
 );
 
 export const LazyAssessments = createLazyComponent(
-  () => import('@/pages/AssessmentsPage')
+  () => import('../pages/AssessmentsPage')
 );
 
 export const LazyAssessmentResults = createLazyComponent(
-  () => import('@/pages/AssessmentResultsPage')
+  () => import('../pages/AssessmentResultsPage')
 );
 
 export const LazyAssessmentTake = createLazyComponent(
-  () => import('@/pages/AssessmentTakePage')
+  () => import('../pages/AssessmentTakePage')
 );
 
 export const LazyProfile = createLazyComponent(
-  () => import('@/pages/ProfilePage')
+  () => import('../pages/ProfilePage')
 );
 
 // Admin pages
 export const LazySystemAdminDashboard = createLazyComponent(
-  () => import('@/pages/admin/SystemAdminDashboardPage')
+  () => import('../pages/admin/SystemAdminDashboardPage')
 );
 
 export const LazyAccountManagement = createLazyComponent(
-  () => import('@/pages/admin/AccountManagementPage')
+  () => import('../pages/admin/AccountManagementPage')
 );
 
 export const LazyUserManagement = createLazyComponent(
-  () => import('@/pages/admin/UserManagementPage')
+  () => import('../pages/admin/UserManagementPage')
 );
 
 export const LazyAuditLog = createLazyComponent(
-  () => import('@/pages/admin/AuditLogPage')
+  () => import('../pages/admin/AuditLogPage')
 );
 
 export const LazyDatabaseQuery = createLazyComponent(
-  () => import('@/pages/admin/DatabaseQueryPage')
+  () => import('../pages/admin/DatabaseQueryPage')
 );
 
 export const LazySystemHealth = createLazyComponent(
-  () => import('@/pages/admin/SystemHealthPage')
+  () => import('../pages/admin/SystemHealthPage')
 );
 
 // Company pages
 export const LazyCompanyDashboard = createLazyComponent(
-  () => import('@/pages/company/CompanyDashboardPage')
+  () => import('../pages/company/CompanyDashboardPage')
 );
 
 export const LazyCandidates = createLazyComponent(
-  () => import('@/pages/company/CandidatesPage')
+  () => import('../pages/company/CandidatesPage')
 );
 
 export const LazyCreateAssessment = createLazyComponent(
-  () => import('@/pages/company/CreateAssessmentPage')
+  () => import('../pages/company/CreateAssessmentPage')
 );
 
 // Support pages
 export const LazyEllaRecruiterDashboard = createLazyComponent(
-  () => import('@/pages/support/EllaRecruiterDashboard')
+  () => import('../pages/support/EllaRecruiterDashboard')
 );

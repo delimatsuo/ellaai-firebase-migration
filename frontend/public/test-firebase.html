@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Test</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSdftFgUvJCoRhIqLRDsI9R99R4hQcNU",
+            authDomain: "ellaai-platform-prod.firebaseapp.com",
+            projectId: "ellaai-platform-prod",
+            storageBucket: "ellaai-platform-prod.firebasestorage.app",
+            messagingSenderId: "461280362624",
+            appId: "1:461280362624:web:883037632b2125776c2665"
+        };
+        
+        console.log('Testing Firebase initialization...');
+        console.log('Config:', firebaseConfig);
+        
+        try {
+            const app = initializeApp(firebaseConfig);
+            console.log('✅ App initialized successfully!', app);
+            
+            const auth = getAuth(app);
+            console.log('✅ Auth initialized successfully!', auth);
+            
+            document.getElementById('status').innerHTML = '✅ Firebase initialized successfully!';
+        } catch (error) {
+            console.error('❌ Firebase error:', error);
+            document.getElementById('status').innerHTML = '❌ Error: ' + error.message;
+        }
+    </script>
+</head>
+<body>
+    <h1>Firebase Initialization Test</h1>
+    <div id="status">Loading...</div>
+    <p>Check the browser console for detailed logs.</p>
+</body>
+</html>

@@ -161,7 +161,8 @@ export async function initializeReactScheduler(): Promise<void> {
 
     // Strategy 2: Try dynamic import of scheduler
     try {
-      const schedulerModule = await import('scheduler');
+      // @ts-ignore - scheduler module doesn't have TypeScript declarations
+      const schedulerModule = await import('scheduler') as any;
       if (schedulerModule && schedulerModule.unstable_scheduleCallback) {
         console.log('✅ React scheduler loaded via dynamic import');
         if (typeof window !== 'undefined') {

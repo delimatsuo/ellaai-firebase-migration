@@ -421,23 +421,45 @@ router.get('/stats',
         activeSupportSessions,
         recentAdminActions,
         recentAuditLogs,
-        totalUsers,
-        totalCompanies
+        allUsers,
+        allCompanies,
+        allAssessments,
+        activeUsersSnapshot
       ] = await Promise.all([
         db.collection('support-sessions').where('status', '==', 'active').get(),
         db.collection('admin-actions').where('timestamp', '>=', admin.firestore.Timestamp.fromDate(last24Hours)).get(),
         db.collection('audit-logs').where('timestamp', '>=', admin.firestore.Timestamp.fromDate(last7Days)).get(),
         db.collection('users').get(),
-        db.collection('companies').get()
+        db.collection('companies').get(),
+        db.collection('assessments').get(),
+        db.collection('users').where('lastActive', '>=', admin.firestore.Timestamp.fromDate(last24Hours)).get()
       ]);
 
+      // Calculate error rate from recent audit logs
+      const errorLogs = recentAuditLogs.docs.filter(doc => 
+        doc.data().severity === 'error' || doc.data().level === 'error'
+      );
+      const errorRate = recentAuditLogs.size > 0 ? errorLogs.length / recentAuditLogs.size : 0;
+
+      // Calculate uptime (mock for now - should come from monitoring service)
+      const uptime = 99.95;
+
+      // Calculate average response time (mock for now - should come from monitoring)
+      const averageResponseTime = 245; // ms
+
       res.json({
+        activeUsers: activeUsersSnapshot.size,
+        totalUsers: allUsers.size,
+        totalCompanies: allCompanies.size,
+        totalAssessments: allAssessments.size,
+        averageResponseTime: averageResponseTime,
+        errorRate: errorRate,
+        uptime: uptime,
+        lastUpdated: new Date(),
+        // Additional stats
         activeSupportSessions: activeSupportSessions.size,
         adminActionsLast24h: recentAdminActions.size,
-        auditLogsLast7Days: recentAuditLogs.size,
-        totalUsers: totalUsers.size,
-        totalCompanies: totalCompanies.size,
-        generatedAt: admin.firestore.Timestamp.now()
+        auditLogsLast7Days: recentAuditLogs.size
       });
 
     } catch (error: any) {

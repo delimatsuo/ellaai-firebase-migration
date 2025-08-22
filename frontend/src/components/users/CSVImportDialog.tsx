@@ -152,7 +152,7 @@ const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
       skipEmptyLines: true,
       complete: (results) => {
         if (results.errors.length > 0) {
-          toast.error(`CSV parsing error: ${results.errors[0].message}`);
+          toast.error(`CSV parsing error: ${results.errors[0]?.message || 'Unknown error'}`);
           return;
         }
 
@@ -160,7 +160,7 @@ const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
         validateData(results.data as any[]);
         setCurrentStep(1);
       },
-      error: (error) => {
+      error: (error: any) => {
         toast.error(`CSV parsing error: ${error.message}`);
       },
     });
@@ -352,7 +352,7 @@ const CSVImportDialog: React.FC<CSVImportDialogProps> = ({
             </Box>
 
             <Paper
-              {...getRootProps()}
+              {...(getRootProps() as any)}
               sx={{
                 p: 6,
                 textAlign: 'center',

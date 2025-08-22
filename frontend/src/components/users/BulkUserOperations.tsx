@@ -407,7 +407,7 @@ const BulkUserOperations: React.FC<BulkUserOperationsProps> = ({
                   <ListItem key={user.uid} sx={{ bgcolor: '#2a2a2a', mb: 1, borderRadius: 1 }}>
                     <ListItemAvatar>
                       <Avatar sx={{ bgcolor: '#9333EA' }}>
-                        {user.displayName?.[0] || user.email[0].toUpperCase()}
+                        {((user.displayName || user.email || 'U')[0] || 'U').toUpperCase()}
                       </Avatar>
                     </ListItemAvatar>
                     <ListItemText

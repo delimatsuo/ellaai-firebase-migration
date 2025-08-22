@@ -162,6 +162,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
       return () => clearTimeout(saveTimer);
     }
+    return undefined;
   }, [value, language, hasUnsavedChanges, autoSave, onSave]);
 
   const handleEditorDidMount = (editor: any) => {
@@ -202,7 +203,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     if (langConfig) {
       onLanguageChange(newLanguage);
       // Optionally reset to default code when language changes
-      if (value.trim() === '' || value === currentLanguage.defaultCode) {
+      if (value.trim() === '' || (currentLanguage && value === currentLanguage.defaultCode)) {
         onChange(langConfig.defaultCode);
       }
     }
@@ -223,7 +224,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
   const handleReset = () => {
     if (window.confirm('Are you sure you want to reset your code? This will restore the template and you will lose your current work.')) {
-      onChange(currentLanguage.defaultCode);
+      onChange(currentLanguage?.defaultCode || '');
       setHasUnsavedChanges(false);
     }
   };
@@ -236,7 +237,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     readOnly,
     fontSize,
     theme,
-    language: currentLanguage.monacoId,
+    language: currentLanguage?.monacoId || 'javascript',
     automaticLayout: true,
     minimap: { enabled: false },
     scrollBeyondLastLine: false,

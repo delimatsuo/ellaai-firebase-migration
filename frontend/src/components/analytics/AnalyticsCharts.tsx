@@ -449,7 +449,7 @@ export const QuestionAnalysisChart: React.FC<QuestionAnalysisChartProps> = ({
             <RechartsTooltip 
               cursor={{ strokeDasharray: '3 3' }}
               content={({ active, payload, label }) => {
-                if (active && payload && payload.length) {
+                if (active && payload && payload.length && payload[0]) {
                   const data = payload[0].payload;
                   return (
                     <Box
@@ -648,7 +648,7 @@ export const HeatmapChart: React.FC<HeatmapChartProps> = ({
                       y={30 + j * cellSize}
                       width={cellSize - 1}
                       height={cellSize - 1}
-                      fill={getColor(values[j][i], maxValue)}
+                      fill={getColor(values[j]?.[i] ?? 0, maxValue)}
                       stroke="#fff"
                       strokeWidth="1"
                     />
@@ -657,10 +657,10 @@ export const HeatmapChart: React.FC<HeatmapChartProps> = ({
                       y={30 + j * cellSize + cellSize / 2}
                       textAnchor="middle"
                       fontSize="8"
-                      fill={values[j][i] / maxValue > 0.5 ? '#fff' : '#000'}
+                      fill={(values[j]?.[i] ?? 0) / maxValue > 0.5 ? '#fff' : '#000'}
                       dominantBaseline="central"
                     >
-                      {values[j][i]}
+                      {values[j]?.[i] ?? 0}
                     </text>
                   </g>
                 ))}

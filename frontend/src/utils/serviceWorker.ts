@@ -182,7 +182,7 @@ export async function getCacheStats() {
       resolve(event.data);
     };
 
-    navigator.serviceWorker.controller.postMessage(
+    navigator.serviceWorker.controller!.postMessage(
       { type: 'GET_CACHE_STATS' },
       [messageChannel.port2]
     );

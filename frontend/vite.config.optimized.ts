@@ -7,8 +7,6 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig({
   plugins: [
     react({
-      // Enable React Fast Refresh with scheduler compatibility
-      fastRefresh: true,
       // Ensure jsx runtime is properly handled
       jsxRuntime: 'automatic',
     }),

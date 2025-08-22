@@ -37,6 +37,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { createAdminGradient, adminColors } from '../../theme/unifiedTheme';
 
 const DRAWER_WIDTH = 280;
 
@@ -99,17 +100,17 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
   };
 
   const drawer = (
-    <Box sx={{ height: '100%', bgcolor: '#1a1a1a', color: '#fff' }}>
-      <Box sx={{ p: 2, borderBottom: '1px solid #333' }}>
+    <Box sx={{ height: '100%', bgcolor: theme.palette.background.default, color: theme.palette.text.primary }}>
+      <Box sx={{ p: 2, borderBottom: `1px solid ${adminColors.border}` }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <AdminIcon sx={{ color: '#ff4444' }} />
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+          <AdminIcon sx={{ color: adminColors.primary }} />
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
             System Admin
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <SecurityIcon sx={{ fontSize: 16, color: '#ff4444' }} />
-          <Typography variant="caption" sx={{ color: '#ccc' }}>
+          <SecurityIcon sx={{ fontSize: 16, color: adminColors.secondary }} />
+          <Typography variant="caption" sx={{ color: adminColors.textSecondary }}>
             Privileged Access Mode
           </Typography>
         </Box>
@@ -119,7 +120,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           const isPrimary = (item as any).primary;
-          const activeColor = isPrimary ? '#4ade80' : '#ff4444';
+          const activeColor = isPrimary ? adminColors.success : adminColors.primary;
           
           return (
             <ListItem key={item.path} disablePadding>
@@ -128,9 +129,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
                 sx={{
                   py: 1.5,
                   px: 2,
-                  bgcolor: isActive ? alpha(activeColor, 0.15) : (isPrimary ? alpha('#4ade80', 0.05) : 'transparent'),
+                  bgcolor: isActive ? alpha(activeColor, 0.15) : (isPrimary ? alpha(adminColors.success, 0.05) : 'transparent'),
                   borderRight: isActive ? `3px solid ${activeColor}` : (isPrimary ? '3px solid transparent' : 'none'),
-                  border: isPrimary ? '1px solid rgba(74, 222, 128, 0.3)' : 'none',
+                  border: isPrimary ? `1px solid ${alpha(adminColors.success, 0.3)}` : 'none',
                   borderRadius: isPrimary ? '8px' : '0',
                   mx: isPrimary ? 1 : 0,
                   my: isPrimary ? 0.5 : 0,
@@ -139,14 +140,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
                   },
                 }}
               >
-                <ListItemIcon sx={{ color: isActive ? activeColor : (isPrimary ? '#4ade80' : '#ccc'), minWidth: 40 }}>
+                <ListItemIcon sx={{ color: isActive ? activeColor : (isPrimary ? adminColors.success : adminColors.textSecondary), minWidth: 40 }}>
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText 
                   primary={item.label}
                   sx={{ 
                     '& .MuiTypography-root': { 
-                      color: isActive ? activeColor : (isPrimary ? '#4ade80' : '#fff'),
+                      color: isActive ? activeColor : (isPrimary ? adminColors.success : theme.palette.text.primary),
                       fontWeight: isActive || isPrimary ? 600 : 400,
                     }
                   }}
@@ -157,16 +158,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
         })}
       </List>
 
-      <Divider sx={{ bgcolor: '#333', mt: 2 }} />
+      <Divider sx={{ bgcolor: adminColors.border, mt: 2 }} />
       
       <Box sx={{ p: 2 }}>
         <Alert 
           severity="warning" 
           sx={{ 
-            bgcolor: alpha('#ff9800', 0.1),
-            border: '1px solid #ff9800',
-            '& .MuiAlert-icon': { color: '#ff9800' },
-            '& .MuiTypography-root': { color: '#fff' }
+            bgcolor: alpha(adminColors.warning, 0.1),
+            border: `1px solid ${adminColors.warning}`,
+            '& .MuiAlert-icon': { color: adminColors.warning },
+            '& .MuiTypography-root': { color: theme.palette.text.primary }
           }}
         >
           <Typography variant="caption">
@@ -178,15 +179,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#121212' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.background.default }}>
       {/* AppBar */}
       <AppBar
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
           ml: { sm: `${DRAWER_WIDTH}px` },
-          bgcolor: '#1e1e1e',
-          borderBottom: '1px solid #333',
+          bgcolor: theme.palette.background.paper,
+          borderBottom: `1px solid ${adminColors.border}`,
+          color: theme.palette.text.primary,
         }}
       >
         <Toolbar>
@@ -200,7 +202,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
             <MenuIcon />
           </IconButton>
 
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, color: theme.palette.text.primary }}>
             EllaAI Admin Console
           </Typography>
 
@@ -211,7 +213,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
 
           {/* User menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2" sx={{ color: '#ccc' }}>
+            <Typography variant="body2" sx={{ color: adminColors.textSecondary }}>
               {userProfile?.displayName || user?.email}
             </Typography>
             <Avatar
@@ -219,12 +221,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
                 width: 32, 
                 height: 32, 
                 cursor: 'pointer',
-                border: '2px solid #ff4444'
+                border: `2px solid ${adminColors.primary}`
               }}
               src={userProfile?.photoURL || user?.photoURL || undefined}
               onClick={handleMenuOpen}
             >
-              {(userProfile?.displayName || user?.email || 'A')[0].toUpperCase()}
+              {((userProfile?.displayName || user?.email || 'A')[0] || 'A').toUpperCase()}
             </Avatar>
           </Box>
 
@@ -236,9 +238,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             PaperProps={{
               sx: {
-                bgcolor: '#2a2a2a',
-                color: '#fff',
-                border: '1px solid #444',
+                bgcolor: theme.palette.background.paper,
+                color: theme.palette.text.primary,
+                border: `1px solid ${adminColors.border}`,
               }
             }}
           >
@@ -246,8 +248,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
               <ExitIcon fontSize="small" />
               Exit Admin Mode
             </MenuItem>
-            <Divider sx={{ bgcolor: '#444' }} />
-            <MenuItem onClick={handleLogout} sx={{ gap: 1, color: '#ff4444' }}>
+            <Divider sx={{ bgcolor: adminColors.border }} />
+            <MenuItem onClick={handleLogout} sx={{ gap: 1, color: adminColors.error }}>
               <ExitIcon fontSize="small" />
               Logout
             </MenuItem>
@@ -290,8 +292,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = () => {
         sx={{
           flexGrow: 1,
           width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
-          bgcolor: '#121212',
-          color: '#fff',
+          bgcolor: theme.palette.background.default,
+          color: theme.palette.text.primary,
           minHeight: '100vh',
         }}
       >

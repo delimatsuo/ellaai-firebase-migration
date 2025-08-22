@@ -154,6 +154,7 @@ export const useActingAs = (): ActingAsContextType & {
         window.removeEventListener('beforeunload', handleBeforeUnload);
       };
     }
+    return undefined;
   }, [context.isActingAs]);
 
   return {

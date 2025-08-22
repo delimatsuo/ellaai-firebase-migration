@@ -533,7 +533,7 @@ const UserManagementPage: React.FC = () => {
                   <TableCell sx={{ color: '#fff', borderColor: '#444' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Avatar sx={{ width: 32, height: 32 }}>
-                        {user.displayName?.[0] || user.email[0].toUpperCase()}
+                        {((user.displayName || user.email || 'U')[0] || 'U').toUpperCase()}
                       </Avatar>
                       <Box>
                         <Typography variant="body2" sx={{ fontWeight: 'bold' }}>

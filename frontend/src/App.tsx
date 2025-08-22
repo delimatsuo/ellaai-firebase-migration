@@ -3,9 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Toaster } from 'react-hot-toast';
-import { lightTheme } from './theme/theme';
+import { unifiedTheme } from './theme/unifiedTheme';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useEffect } from 'react';
 import { ActingAsProvider } from './contexts/ActingAsContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
@@ -238,7 +239,7 @@ const AppContent: React.FC = () => {
             } 
           />
           <Route 
-            path="database-query" 
+            path="database" 
             element={
               <Suspense fallback={<LoadingSpinner message="Loading database tools..." />}>
                 <DatabaseQueryPage />
@@ -246,7 +247,7 @@ const AppContent: React.FC = () => {
             } 
           />
           <Route 
-            path="user-management" 
+            path="users" 
             element={
               <Suspense fallback={<LoadingSpinner message="Loading user management..." />}>
                 <UserManagementPage />
@@ -254,7 +255,7 @@ const AppContent: React.FC = () => {
             } 
           />
           <Route 
-            path="account-management" 
+            path="accounts" 
             element={
               <Suspense fallback={<LoadingSpinner message="Loading account management..." />}>
                 <AccountManagementPage />
@@ -262,7 +263,7 @@ const AppContent: React.FC = () => {
             } 
           />
           <Route 
-            path="audit-log" 
+            path="audit" 
             element={
               <Suspense fallback={<LoadingSpinner message="Loading audit logs..." />}>
                 <AuditLogPage />
@@ -270,7 +271,7 @@ const AppContent: React.FC = () => {
             } 
           />
           <Route 
-            path="system-health" 
+            path="health" 
             element={
               <Suspense fallback={<LoadingSpinner message="Loading system health..." />}>
                 <SystemHealthPage />
@@ -303,7 +304,7 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider theme={lightTheme}>
+    <ThemeProvider theme={unifiedTheme}>
       <CssBaseline />
       <AuthProvider>
         <ActingAsProvider>

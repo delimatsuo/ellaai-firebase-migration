@@ -4,6 +4,7 @@ import {
   Typography,
   styled,
   alpha,
+  useTheme,
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { motion } from 'framer-motion';
@@ -129,6 +130,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onSendEmail,
   onScheduleInterview,
 }) => {
+  const theme = useTheme();
+  
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
@@ -171,7 +174,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       {column.title}
                     </Typography>
-                    <CountBadge color={column.color}>
+                    <CountBadge theme={theme} color={column.color}>
                       {columnCandidates.length}
                     </CountBadge>
                   </ColumnHeader>

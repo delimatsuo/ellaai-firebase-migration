@@ -31,7 +31,7 @@ const StyledGlassCard = styled(Card, {
   }),
 }));
 
-const MotionCard = motion(StyledGlassCard, {
+const MotionCard = motion(StyledGlassCard as any, {
   forwardMotionProps: true,
 });
 

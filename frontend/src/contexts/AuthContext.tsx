@@ -1,19 +1,23 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
-  User,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail,
-  updateProfile,
-  UserCredential,
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { authService } from '../services/authService';
+
+// Define types for Firebase Auth (since we're using CDN version)
+interface User {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  emailVerified: boolean;
+  getIdToken: () => Promise<string>;
+  updateProfile: (profile: {displayName?: string | null; photoURL?: string | null}) => Promise<void>;
+}
+
+interface UserCredential {
+  user: User;
+  credential?: any;
+  operationType?: string;
+}
 
 export interface UserProfile {
   uid: string;
@@ -61,21 +65,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        await loadUserProfile(firebaseUser.uid);
-        
-        // Create session with backend
-        try {
-          const idToken = await firebaseUser.getIdToken();
-          await authService.createSession(idToken);
-        } catch (error) {
-          console.error('Failed to create session:', error);
-        }
-      } else {
-        setUser(null);
-        setUserProfile(null);
+    // Handle potential Firebase initialization errors gracefully
+    try {
+      const unsubscribe = auth.onAuthStateChanged(async (firebaseUser: any) => {
+        if (firebaseUser) {
+          setUser(firebaseUser);
+          await loadUserProfile(firebaseUser.uid);
+          
+          // Create session with backend
+          try {
+            const idToken = await firebaseUser.getIdToken();
+            await authService.createSession(idToken);
+          } catch (error) {
+            console.error('Failed to create session:', error);
+          }
+        } else {
+          setUser(null);
+          setUserProfile(null);
         
         // Clear session with backend
         try {
@@ -88,11 +94,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     return unsubscribe;
+    } catch (error) {
+      console.error('❌ Firebase Auth initialization failed:', error);
+      // Set loading to false so app can continue without auth
+      setLoading(false);
+      
+      // Return empty unsubscribe function
+      return () => {};
+    }
   }, []);
 
   const loadUserProfile = async (uid: string): Promise<void> => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', uid));
+      const userDoc = await db.collection('users').doc(uid).get();
       
       if (userDoc.exists()) {
         const data = userDoc.data();
@@ -129,7 +143,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const createUserProfile = async (uid: string, profile: Partial<UserProfile>): Promise<void> => {
     try {
-      await setDoc(doc(db, 'users', uid), {
+      await db.collection('users').doc(uid).set({
         ...profile,
         createdAt: new Date(),
         lastSignIn: new Date(),
@@ -143,7 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signIn = async (email: string, password: string): Promise<UserCredential> => {
     setLoading(true);
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      const result = await auth.signInWithEmailAndPassword(email, password);
       return result;
     } catch (error) {
       console.error('Sign in error:', error);
@@ -160,11 +174,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<UserCredential> => {
     setLoading(true);
     try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const result = await auth.createUserWithEmailAndPassword(email, password);
       
       // Update Firebase Auth profile
       if (profile.displayName) {
-        await updateProfile(result.user, {
+        await result.user.updateProfile({
           displayName: profile.displayName,
           photoURL: profile.photoURL,
         });
@@ -191,8 +205,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signInWithGoogle = async (): Promise<UserCredential> => {
     setLoading(true);
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      if (!window.firebase) throw new Error('Firebase not loaded');
+      const provider = new window.firebase.auth.GoogleAuthProvider();
+      const result = await auth.signInWithPopup(provider);
       
       // Create or update profile
       await createUserProfile(result.user.uid, {
@@ -215,7 +230,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async (): Promise<void> => {
     try {
-      await signOut(auth);
+      await auth.signOut();
     } catch (error) {
       console.error('Logout error:', error);
       throw error;
@@ -224,7 +239,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string): Promise<void> => {
     try {
-      await sendPasswordResetEmail(auth, email);
+      await auth.sendPasswordResetEmail(email);
     } catch (error) {
       console.error('Password reset error:', error);
       throw error;
@@ -243,11 +258,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (updates.photoURL !== undefined) authUpdates.photoURL = updates.photoURL;
       
       if (Object.keys(authUpdates).length > 0) {
-        await updateProfile(user, authUpdates);
+        await user.updateProfile(authUpdates);
       }
 
       // Update Firestore profile
-      await setDoc(doc(db, 'users', user.uid), {
+      await db.collection('users').doc(user.uid).set({
         ...updates,
         updatedAt: new Date(),
       }, { merge: true });

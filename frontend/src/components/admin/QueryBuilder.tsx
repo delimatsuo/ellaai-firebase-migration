@@ -457,8 +457,6 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
                 fontSize: 14,
                 wordWrap: 'on',
                 lineNumbers: 'on',
-                folding: true,
-                bracketPairColorization: { enabled: true },
                 formatOnPaste: true,
                 formatOnType: true,
               }}

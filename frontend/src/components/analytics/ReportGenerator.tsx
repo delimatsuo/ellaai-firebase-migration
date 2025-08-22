@@ -59,8 +59,8 @@ import {
   GeneratedReport,
   CandidateResult,
   ReportSection 
-} from '@/types/analytics';
-import { resultsService } from '@/services/analytics/resultsService';
+} from '../../types/analytics';
+import { resultsService } from '../../services/analytics/resultsService';
 
 interface ReportGeneratorProps {
   open: boolean;
@@ -130,7 +130,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
               'ready': 100,
               'failed': 0
             };
-            setGenerationProgress(progressMap[status.status] || 0);
+            setGenerationProgress(progressMap[status.status as keyof typeof progressMap] || 0);
           }
         } catch (error) {
           console.error('Failed to check report status:', error);
@@ -141,6 +141,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isGenerating, generatedReport]);
 
   const loadExistingReports = async () => {

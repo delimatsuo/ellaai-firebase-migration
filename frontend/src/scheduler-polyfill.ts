@@ -113,7 +113,7 @@ export function ensureScheduler() {
     throw new Error('React scheduler not found in any location');
     
   } catch (error) {
-    console.warn('React scheduler not available, initializing polyfill:', error.message);
+    console.warn('React scheduler not available, initializing polyfill:', (error as Error)?.message || 'Unknown error');
     const polyfill = createSchedulerPolyfill();
     
     // Make polyfill globally available for other modules

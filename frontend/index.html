@@ -24,6 +24,33 @@
     />
     
     <title>EllaAI - AI-Powered Recruitment Platform</title>
+    
+    <!-- Load Firebase from CDN to bypass bundling issues -->
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+      // Initialize Firebase globally before the app loads
+      const firebaseConfig = {
+        apiKey: "AIzaSyDSdftFgUvJCoRhIqLRDsI9R99R4hQcNU",
+        authDomain: "ellaai-platform-prod.firebaseapp.com",
+        projectId: "ellaai-platform-prod",
+        storageBucket: "ellaai-platform-prod.firebasestorage.app",
+        messagingSenderId: "461280362624",
+        appId: "1:461280362624:web:883037632b2125776c2665"
+      };
+      
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      
+      // Make Firebase available globally
+      window.firebaseApp = firebase.app();
+      window.firebaseAuth = firebase.auth();
+      window.firebaseDb = firebase.firestore();
+      
+      console.log('Firebase initialized from CDN');
+    </script>
   </head>
   <body>
     <div id="root"></div>

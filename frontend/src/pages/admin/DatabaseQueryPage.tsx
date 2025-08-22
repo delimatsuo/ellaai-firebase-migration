@@ -302,8 +302,6 @@ const DatabaseQueryPage: React.FC = () => {
                       fontSize: 14,
                       wordWrap: 'on',
                       lineNumbers: 'on',
-                      folding: true,
-                      bracketPairColorization: { enabled: true },
                     }}
                   />
                 </Box>

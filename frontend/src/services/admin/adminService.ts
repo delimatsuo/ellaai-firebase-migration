@@ -14,10 +14,20 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api-dl3telj45
 class AdminService {
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     try {
+      // Get Firebase auth token
+      const auth = (await import('firebase/auth')).getAuth();
+      const user = auth.currentUser;
+      let token = '';
+      
+      if (user) {
+        token = await user.getIdToken();
+      }
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
           ...options.headers,
         },
         ...options,

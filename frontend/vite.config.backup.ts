@@ -7,8 +7,7 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [
     react({
-      // Enable React Fast Refresh
-      fastRefresh: true,
+      // Enable React Fast Refresh (now enabled by default)
     }),
     // Bundle analyzer plugin
     // visualizer({
@@ -108,6 +107,9 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             return 'other-vendor';
           }
+          
+          // Default case - return undefined for app code
+          return undefined;
         },
         // Optimize chunk sizes
         chunkFileNames: (chunkInfo) => {

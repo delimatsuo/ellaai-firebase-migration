@@ -192,6 +192,7 @@ export function useCachedApi<T>(
       const interval = setInterval(fetchData, options.refetchInterval);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [fetchData, options.refetchInterval]);
 
   const invalidate = React.useCallback(() => {

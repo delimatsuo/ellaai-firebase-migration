@@ -231,7 +231,7 @@ const ImpersonationModal: React.FC<ImpersonationModalProps> = ({
                       <TableCell sx={{ color: '#fff', borderColor: '#444' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Avatar sx={{ width: 24, height: 24 }}>
-                            {user.displayName?.[0] || user.email[0].toUpperCase()}
+                            {user.displayName?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
                           </Avatar>
                           <Box>
                             <Typography variant="body2">{user.displayName || 'N/A'}</Typography>
@@ -277,7 +277,7 @@ const ImpersonationModal: React.FC<ImpersonationModalProps> = ({
           <Box sx={{ mb: 3, p: 2, bgcolor: '#333', borderRadius: 1 }}>
             <Typography variant="body2" sx={{ color: '#ccc', mb: 1 }}>Selected User:</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar>{selectedUser.displayName?.[0] || selectedUser.email[0].toUpperCase()}</Avatar>
+              <Avatar>{selectedUser.displayName?.[0] || selectedUser.email?.[0]?.toUpperCase() || 'U'}</Avatar>
               <Box>
                 <Typography variant="body1">{selectedUser.displayName}</Typography>
                 <Typography variant="body2" sx={{ color: '#ccc' }}>{selectedUser.email}</Typography>

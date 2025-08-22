@@ -1,0 +1,861 @@
+{
+  "timestamp": "2025-08-20T12:51:49.585451",
+  "main_app": {
+    "screenshot_path": "./screenshots/analysis/main_dashboard_20250820_125155.png",
+    "page_structure": {
+      "title": "EllaAI - AI-Powered Recruitment Platform",
+      "url": "https://ellaai-platform-prod.web.app/login",
+      "bodyClasses": "",
+      "hasNavigation": false,
+      "hasCards": 1,
+      "hasButtons": 2,
+      "colorScheme": "normal",
+      "mainContentSelector": true
+    },
+    "design_tokens": {
+      "cssVariables": {
+        "--vscode-sash-size": "4px"
+      },
+      "elementStyles": {
+        "h1_MuiTypography-root_MuiTypography-h4_MuiTypography-gutterBottom_css-1c24bii_0": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(30, 41, 59)",
+          "fontSize": "30px",
+          "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "borderRadius": "0px",
+          "padding": "0px",
+          "margin": "0px 0px 10.5px",
+          "boxShadow": "none",
+          "border": "0px none rgb(30, 41, 59)"
+        },
+        "h2_MuiTypography-root_MuiTypography-h5_MuiTypography-gutterBottom_css-fspz0u_1": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(30, 41, 59)",
+          "fontSize": "24px",
+          "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "600",
+          "borderRadius": "0px",
+          "padding": "0px",
+          "margin": "0px 0px 8.4px",
+          "boxShadow": "none",
+          "border": "0px none rgb(30, 41, 59)"
+        },
+        "button_MuiButtonBase-root_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-lw1c3h_2": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(255, 255, 255)",
+          "fontSize": "14.4px",
+          "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "500",
+          "borderRadius": "10px",
+          "padding": "10px 24px",
+          "margin": "24px 0px 16px",
+          "boxShadow": "none",
+          "border": "0px none rgb(255, 255, 255)"
+        },
+        "button_MuiButtonBase-root_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-6zhd7v_3": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(107, 70, 193)",
+          "fontSize": "14.4px",
+          "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "500",
+          "borderRadius": "10px",
+          "padding": "10px 24px",
+          "margin": "0px 0px 16px",
+          "boxShadow": "none",
+          "border": "2px solid rgba(107, 70, 193, 0.5)"
+        },
+        "p_MuiTypography-root_MuiTypography-body2_css-14d3bgd_4": {
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(107, 70, 193)",
+          "fontSize": "14px",
+          "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+          "fontWeight": "400",
+          "borderRadius": "0px",
+          "padding": "0px",
+          "margin": "0px",
+          "boxShadow": "none",
+          "border": "0px none rgb(107, 70, 193)"
+        }
+      }
+    },
+    "is_login_page": true,
+    "timestamp": "2025-08-20T12:51:56.120309"
+  },
+  "admin_interface": {
+    "pages": {
+      "/admin": {
+        "screenshot_path": "./screenshots/analysis/admin_admin_root_20250820_125158.png",
+        "status_code": 200,
+        "is_error": false,
+        "page_analysis": {
+          "title": "EllaAI - AI-Powered Recruitment Platform",
+          "url": "https://ellaai-platform-prod.web.app/login",
+          "hasContent": true,
+          "hasForm": true,
+          "hasTable": false,
+          "hasNavigation": false,
+          "hasCards": true,
+          "hasLoadingIndicators": false,
+          "errorMessages": [],
+          "formFields": [
+            {
+              "type": "text",
+              "name": "email",
+              "placeholder": "",
+              "required": true
+            },
+            {
+              "type": "password",
+              "name": "password",
+              "placeholder": "",
+              "required": true
+            }
+          ],
+          "actionButtons": [
+            {
+              "text": "Sign In",
+              "disabled": false,
+              "type": "submit"
+            },
+            {
+              "text": "Sign in with Google",
+              "disabled": false,
+              "type": "button"
+            }
+          ]
+        },
+        "functionality_test": {
+          "has_validation": false,
+          "required_fields": 2,
+          "submit_test": "no_validation",
+          "api_connectivity": "unknown"
+        },
+        "design_tokens": {
+          "cssVariables": {
+            "--vscode-sash-size": "4px"
+          },
+          "elementStyles": {
+            "h1_MuiTypography-root_MuiTypography-h4_MuiTypography-gutterBottom_css-1c24bii_0": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "30px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 10.5px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "h2_MuiTypography-root_MuiTypography-h5_MuiTypography-gutterBottom_css-fspz0u_1": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "24px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 8.4px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-lw1c3h_2": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "24px 0px 16px",
+              "boxShadow": "rgba(107, 70, 193, 0.3) 0px 8px 32px 0px",
+              "border": "0px none rgb(255, 255, 255)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-6zhd7v_3": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "0px 0px 16px",
+              "boxShadow": "none",
+              "border": "2px solid rgba(107, 70, 193, 0.5)"
+            },
+            "p_MuiTypography-root_MuiTypography-body2_css-14d3bgd_4": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "400",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px",
+              "boxShadow": "none",
+              "border": "0px none rgb(107, 70, 193)"
+            }
+          }
+        }
+      },
+      "/admin/create-company": {
+        "screenshot_path": "./screenshots/analysis/admin_admin_root_create-company_20250820_125203.png",
+        "status_code": 200,
+        "is_error": false,
+        "page_analysis": {
+          "title": "EllaAI - AI-Powered Recruitment Platform",
+          "url": "https://ellaai-platform-prod.web.app/login",
+          "hasContent": true,
+          "hasForm": true,
+          "hasTable": false,
+          "hasNavigation": false,
+          "hasCards": true,
+          "hasLoadingIndicators": false,
+          "errorMessages": [],
+          "formFields": [
+            {
+              "type": "text",
+              "name": "email",
+              "placeholder": "",
+              "required": true
+            },
+            {
+              "type": "password",
+              "name": "password",
+              "placeholder": "",
+              "required": true
+            }
+          ],
+          "actionButtons": [
+            {
+              "text": "Sign In",
+              "disabled": false,
+              "type": "submit"
+            },
+            {
+              "text": "Sign in with Google",
+              "disabled": false,
+              "type": "button"
+            }
+          ]
+        },
+        "functionality_test": {
+          "has_validation": false,
+          "required_fields": 2,
+          "submit_test": "no_validation",
+          "api_connectivity": "unknown"
+        },
+        "design_tokens": {
+          "cssVariables": {
+            "--vscode-sash-size": "4px"
+          },
+          "elementStyles": {
+            "h1_MuiTypography-root_MuiTypography-h4_MuiTypography-gutterBottom_css-1c24bii_0": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "30px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 10.5px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "h2_MuiTypography-root_MuiTypography-h5_MuiTypography-gutterBottom_css-fspz0u_1": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "24px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 8.4px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-lw1c3h_2": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "24px 0px 16px",
+              "boxShadow": "rgba(107, 70, 193, 0.3) 0px 8px 32px 0px",
+              "border": "0px none rgb(255, 255, 255)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-6zhd7v_3": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "0px 0px 16px",
+              "boxShadow": "none",
+              "border": "2px solid rgba(107, 70, 193, 0.5)"
+            },
+            "p_MuiTypography-root_MuiTypography-body2_css-14d3bgd_4": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "400",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px",
+              "boxShadow": "none",
+              "border": "0px none rgb(107, 70, 193)"
+            }
+          }
+        }
+      },
+      "/admin/users": {
+        "screenshot_path": "./screenshots/analysis/admin_admin_root_users_20250820_125206.png",
+        "status_code": 200,
+        "is_error": false,
+        "page_analysis": {
+          "title": "EllaAI - AI-Powered Recruitment Platform",
+          "url": "https://ellaai-platform-prod.web.app/login",
+          "hasContent": true,
+          "hasForm": true,
+          "hasTable": false,
+          "hasNavigation": false,
+          "hasCards": true,
+          "hasLoadingIndicators": false,
+          "errorMessages": [],
+          "formFields": [
+            {
+              "type": "text",
+              "name": "email",
+              "placeholder": "",
+              "required": true
+            },
+            {
+              "type": "password",
+              "name": "password",
+              "placeholder": "",
+              "required": true
+            }
+          ],
+          "actionButtons": [
+            {
+              "text": "Sign In",
+              "disabled": false,
+              "type": "submit"
+            },
+            {
+              "text": "Sign in with Google",
+              "disabled": false,
+              "type": "button"
+            }
+          ]
+        },
+        "functionality_test": {
+          "has_validation": false,
+          "required_fields": 2,
+          "submit_test": "no_validation",
+          "api_connectivity": "unknown"
+        },
+        "design_tokens": {
+          "cssVariables": {
+            "--vscode-sash-size": "4px"
+          },
+          "elementStyles": {
+            "h1_MuiTypography-root_MuiTypography-h4_MuiTypography-gutterBottom_css-1c24bii_0": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "30px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 10.5px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "h2_MuiTypography-root_MuiTypography-h5_MuiTypography-gutterBottom_css-fspz0u_1": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "24px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 8.4px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-lw1c3h_2": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "24px 0px 16px",
+              "boxShadow": "rgba(107, 70, 193, 0.3) 0px 8px 32px 0px",
+              "border": "0px none rgb(255, 255, 255)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-6zhd7v_3": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "0px 0px 16px",
+              "boxShadow": "none",
+              "border": "2px solid rgba(107, 70, 193, 0.5)"
+            },
+            "p_MuiTypography-root_MuiTypography-body2_css-14d3bgd_4": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "400",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px",
+              "boxShadow": "none",
+              "border": "0px none rgb(107, 70, 193)"
+            }
+          }
+        }
+      },
+      "/admin/audit-logs": {
+        "screenshot_path": "./screenshots/analysis/admin_admin_root_audit-logs_20250820_125210.png",
+        "status_code": 200,
+        "is_error": false,
+        "page_analysis": {
+          "title": "EllaAI - AI-Powered Recruitment Platform",
+          "url": "https://ellaai-platform-prod.web.app/login",
+          "hasContent": true,
+          "hasForm": true,
+          "hasTable": false,
+          "hasNavigation": false,
+          "hasCards": true,
+          "hasLoadingIndicators": false,
+          "errorMessages": [],
+          "formFields": [
+            {
+              "type": "text",
+              "name": "email",
+              "placeholder": "",
+              "required": true
+            },
+            {
+              "type": "password",
+              "name": "password",
+              "placeholder": "",
+              "required": true
+            }
+          ],
+          "actionButtons": [
+            {
+              "text": "Sign In",
+              "disabled": false,
+              "type": "submit"
+            },
+            {
+              "text": "Sign in with Google",
+              "disabled": false,
+              "type": "button"
+            }
+          ]
+        },
+        "functionality_test": {
+          "has_validation": false,
+          "required_fields": 2,
+          "submit_test": "no_validation",
+          "api_connectivity": "unknown"
+        },
+        "design_tokens": {
+          "cssVariables": {
+            "--vscode-sash-size": "4px"
+          },
+          "elementStyles": {
+            "h1_MuiTypography-root_MuiTypography-h4_MuiTypography-gutterBottom_css-1c24bii_0": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "30px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 10.5px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "h2_MuiTypography-root_MuiTypography-h5_MuiTypography-gutterBottom_css-fspz0u_1": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "24px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 8.4px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-lw1c3h_2": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "24px 0px 16px",
+              "boxShadow": "rgba(107, 70, 193, 0.3) 0px 8px 32px 0px",
+              "border": "0px none rgb(255, 255, 255)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-6zhd7v_3": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "0px 0px 16px",
+              "boxShadow": "none",
+              "border": "2px solid rgba(107, 70, 193, 0.5)"
+            },
+            "p_MuiTypography-root_MuiTypography-body2_css-14d3bgd_4": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "400",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px",
+              "boxShadow": "none",
+              "border": "0px none rgb(107, 70, 193)"
+            }
+          }
+        }
+      },
+      "/admin/system-health": {
+        "screenshot_path": "./screenshots/analysis/admin_admin_root_system-health_20250820_125218.png",
+        "status_code": 200,
+        "is_error": false,
+        "page_analysis": {
+          "title": "EllaAI - AI-Powered Recruitment Platform",
+          "url": "https://ellaai-platform-prod.web.app/login",
+          "hasContent": true,
+          "hasForm": true,
+          "hasTable": false,
+          "hasNavigation": false,
+          "hasCards": true,
+          "hasLoadingIndicators": false,
+          "errorMessages": [],
+          "formFields": [
+            {
+              "type": "text",
+              "name": "email",
+              "placeholder": "",
+              "required": true
+            },
+            {
+              "type": "password",
+              "name": "password",
+              "placeholder": "",
+              "required": true
+            }
+          ],
+          "actionButtons": [
+            {
+              "text": "Sign In",
+              "disabled": false,
+              "type": "submit"
+            },
+            {
+              "text": "Sign in with Google",
+              "disabled": false,
+              "type": "button"
+            }
+          ]
+        },
+        "functionality_test": {
+          "has_validation": false,
+          "required_fields": 2,
+          "submit_test": "no_validation",
+          "api_connectivity": "unknown"
+        },
+        "design_tokens": {
+          "cssVariables": {
+            "--vscode-sash-size": "4px"
+          },
+          "elementStyles": {
+            "h1_MuiTypography-root_MuiTypography-h4_MuiTypography-gutterBottom_css-1c24bii_0": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "30px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 10.5px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "h2_MuiTypography-root_MuiTypography-h5_MuiTypography-gutterBottom_css-fspz0u_1": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "24px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 8.4px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-lw1c3h_2": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "24px 0px 16px",
+              "boxShadow": "rgba(107, 70, 193, 0.3) 0px 8px 32px 0px",
+              "border": "0px none rgb(255, 255, 255)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-6zhd7v_3": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "0px 0px 16px",
+              "boxShadow": "none",
+              "border": "2px solid rgba(107, 70, 193, 0.5)"
+            },
+            "p_MuiTypography-root_MuiTypography-body2_css-14d3bgd_4": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "400",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px",
+              "boxShadow": "none",
+              "border": "0px none rgb(107, 70, 193)"
+            }
+          }
+        }
+      },
+      "/admin/database-query": {
+        "screenshot_path": "./screenshots/analysis/admin_admin_root_database-query_20250820_125221.png",
+        "status_code": 200,
+        "is_error": false,
+        "page_analysis": {
+          "title": "EllaAI - AI-Powered Recruitment Platform",
+          "url": "https://ellaai-platform-prod.web.app/login",
+          "hasContent": true,
+          "hasForm": true,
+          "hasTable": false,
+          "hasNavigation": false,
+          "hasCards": true,
+          "hasLoadingIndicators": false,
+          "errorMessages": [],
+          "formFields": [
+            {
+              "type": "text",
+              "name": "email",
+              "placeholder": "",
+              "required": true
+            },
+            {
+              "type": "password",
+              "name": "password",
+              "placeholder": "",
+              "required": true
+            }
+          ],
+          "actionButtons": [
+            {
+              "text": "Sign In",
+              "disabled": false,
+              "type": "submit"
+            },
+            {
+              "text": "Sign in with Google",
+              "disabled": false,
+              "type": "button"
+            }
+          ]
+        },
+        "functionality_test": {
+          "has_validation": false,
+          "required_fields": 2,
+          "submit_test": "no_validation",
+          "api_connectivity": "unknown"
+        },
+        "design_tokens": {
+          "cssVariables": {
+            "--vscode-sash-size": "4px"
+          },
+          "elementStyles": {
+            "h1_MuiTypography-root_MuiTypography-h4_MuiTypography-gutterBottom_css-1c24bii_0": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "30px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 10.5px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "h2_MuiTypography-root_MuiTypography-h5_MuiTypography-gutterBottom_css-fspz0u_1": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(30, 41, 59)",
+              "fontSize": "24px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "600",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px 0px 8.4px",
+              "boxShadow": "none",
+              "border": "0px none rgb(30, 41, 59)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-contained_MuiButton-containedPrimary_MuiButton-sizeMedium_MuiButton-containedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-lw1c3h_2": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "24px 0px 16px",
+              "boxShadow": "rgba(107, 70, 193, 0.3) 0px 8px 32px 0px",
+              "border": "0px none rgb(255, 255, 255)"
+            },
+            "button_MuiButtonBase-root_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_MuiButton-root_MuiButton-outlined_MuiButton-outlinedPrimary_MuiButton-sizeMedium_MuiButton-outlinedSizeMedium_MuiButton-colorPrimary_MuiButton-fullWidth_css-6zhd7v_3": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14.4px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "500",
+              "borderRadius": "10px",
+              "padding": "10px 24px",
+              "margin": "0px 0px 16px",
+              "boxShadow": "none",
+              "border": "2px solid rgba(107, 70, 193, 0.5)"
+            },
+            "p_MuiTypography-root_MuiTypography-body2_css-14d3bgd_4": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(107, 70, 193)",
+              "fontSize": "14px",
+              "fontFamily": "Inter, Roboto, Helvetica, Arial, sans-serif",
+              "fontWeight": "400",
+              "borderRadius": "0px",
+              "padding": "0px",
+              "margin": "0px",
+              "boxShadow": "none",
+              "border": "0px none rgb(107, 70, 193)"
+            }
+          }
+        }
+      }
+    },
+    "navigation_structure": {},
+    "connectivity_issues": [],
+    "functionality_tests": {}
+  },
+  "design_analysis": {},
+  "service_connectivity": {
+    "firebase_auth": "not_loaded",
+    "api_calls": [
+      {
+        "url": "https://ellaai-platform-prod.web.app/assets/js/utils-3df441f8.js",
+        "method": "GET",
+        "timestamp": "2025-08-20T12:52:23.062507",
+        "status": 200,
+        "response_time": "2025-08-20T12:52:23.062629"
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/assets/js/charts-d30f0d55.js",
+        "method": "GET",
+        "timestamp": "2025-08-20T12:52:23.062726",
+        "status": 200,
+        "response_time": "2025-08-20T12:52:23.062812"
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/assets/css/monaco-9382ad34.css",
+        "method": "GET",
+        "timestamp": "2025-08-20T12:52:23.063023",
+        "status": 200,
+        "response_time": "2025-08-20T12:52:23.063298"
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/assets/css/mui-943569ee.css",
+        "method": "GET",
+        "timestamp": "2025-08-20T12:52:23.063413",
+        "status": 200,
+        "response_time": "2025-08-20T12:52:23.063520"
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/assets/css/index-7f0c9e78.css",
+        "method": "GET",
+        "timestamp": "2025-08-20T12:52:23.063638",
+        "status": 200,
+        "response_time": "2025-08-20T12:52:23.063751"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v48/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMW36eA1Ef.woff2",
+        "method": "GET",
+        "timestamp": "2025-08-20T12:52:23.068679",
+        "status": 200,
+        "response_time": "2025-08-20T12:52:23.069227"
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/vite.svg",
+        "method": "GET",
+        "timestamp": "2025-08-20T12:52:23.069701",
+        "status": 200,
+        "response_time": "2025-08-20T12:52:23.174425"
+      },
+      {
+        "url": "https://api-dl3telj45a-uc.a.run.app/auth/logout",
+        "method": "POST",
+        "timestamp": "2025-08-20T12:52:23.072467",
+        "status": 404,
+        "response_time": "2025-08-20T12:52:23.161095"
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/assets/js/LoginPage-e404458b.js",
+        "method": "GET",
+        "timestamp": "2025-08-20T12:52:23.164549",
+        "status": 200,
+        "response_time": "2025-08-20T12:52:23.164817"
+      },
+      {
+        "url": "https://ellaai-platform-prod.web.app/vite.svg",
+        "method": "GET",
+        "timestamp": "2025-08-20T12:52:23.172965"
+      }
+    ],
+    "errors": [],
+    "loading_times": {
+      "admin_page": 0.626703
+    }
+  },
+  "design_gaps": []
+}

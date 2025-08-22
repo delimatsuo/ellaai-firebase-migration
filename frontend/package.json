@@ -20,11 +20,15 @@
     "perf:lighthouse": "npx lhci autorun",
     "perf:load": "node ../scripts/performance-monitoring.js load",
     "build:analyze": "npm run build && npm run perf:bundle && npx vite-bundle-analyzer dist",
-    "build:performance": "npm run build && npm run perf:analyze"
+    "build:performance": "npm run build && npm run perf:analyze",
+    "build:verify": "node scripts/production-verification.js",
+    "build:clean": "rm -rf dist && npm run build",
+    "build:production": "NODE_ENV=production VITE_ENV=production npm run build:clean"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/serialize": "^1.3.3",
+    "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^3.1.1",
     "@monaco-editor/react": "^4.7.0",
     "@mui/icons-material": "^5.14.1",
@@ -36,7 +40,7 @@
     "@types/react-beautiful-dnd": "^13.1.8",
     "axios": "^1.4.0",
     "date-fns": "^4.1.0",
-    "firebase": "^10.1.0",
+    "firebase": "^12.1.0",
     "framer-motion": "^10.18.0",
     "monaco-editor": "^0.40.0",
     "papaparse": "^5.5.3",
@@ -54,6 +58,7 @@
     "zustand": "^4.3.9"
   },
   "devDependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",

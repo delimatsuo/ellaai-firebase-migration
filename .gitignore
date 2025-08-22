@@ -124,3 +124,4 @@ desktop.ini
 docs/_build/
 docs/.docusaurus/
 docs/node_modules/
+.vercel

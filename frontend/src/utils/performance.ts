@@ -108,7 +108,9 @@ export class PerformanceMonitor {
       new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
         const lastEntry = entries[entries.length - 1];
-        vitals.lcp = lastEntry.startTime;
+        if (lastEntry) {
+          vitals.lcp = lastEntry.startTime;
+        }
       }).observe({ entryTypes: ['largest-contentful-paint'] });
       
       // First Input Delay
@@ -162,7 +164,7 @@ export class PerformanceMonitor {
     if (arr.length === 0) return 0;
     const sorted = [...arr].sort((a, b) => a - b);
     const index = Math.ceil((p / 100) * sorted.length) - 1;
-    return sorted[index];
+    return sorted[index] || 0;
   }
 }
 

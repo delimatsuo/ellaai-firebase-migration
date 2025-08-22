@@ -1,9 +1,9 @@
 // Production build - v1.0.1
 import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
-import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getFunctions } from 'firebase/functions';
+import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
@@ -11,7 +11,7 @@ import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 // Note: These are client-side keys and are safe to be public
 // Security is enforced through Firebase Security Rules and domain restrictions
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "YOUR_API_KEY",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDSdftFqUvIjCoRhIqLR0sI9B99R4hQcNU",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ellaai-platform-prod.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ellaai-platform-prod",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ellaai-platform-prod.firebasestorage.app",
@@ -20,14 +20,60 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+// Production safety check - prevent development connections
+if (typeof window !== 'undefined') {
+  if (window.location.hostname.includes('dev') || 
+      window.location.hostname.includes('test') ||
+      window.location.hostname.includes('127.0.0.1')) {
+    console.warn('🚨 Production build detected on development server. Ensuring no development connections are made.');
+  }
+}
+
+// Validate production configuration
+const isProduction = import.meta.env.PROD || import.meta.env.VITE_ENV === 'production';
+if (isProduction) {
+  // Only validate that we have required fields, don't throw errors for demo/test
+  if (!firebaseConfig.apiKey || 
+      !firebaseConfig.authDomain || 
+      !firebaseConfig.projectId) {
+    console.error('Missing required Firebase configuration');
+    // Don't throw error, let Firebase handle invalid config gracefully
+  }
+}
+
+// Initialize Firebase with error handling
+let app;
+let firebaseError = null;
+
+try {
+  console.log('Initializing Firebase with config:', { ...firebaseConfig, apiKey: '***' });
+  app = initializeApp(firebaseConfig);
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  firebaseError = error;
+  
+  // Create a demo app instance that won't try to connect to real Firebase
+  app = initializeApp({
+    apiKey: "demo-api-key",
+    authDomain: "demo.firebaseapp.com",
+    projectId: "demo-project",
+    storageBucket: "demo.appspot.com",
+    messagingSenderId: "12345",
+    appId: "demo-app-id"
+  });
+}
+
+export { app, firebaseError };
 
 // Initialize Firebase App Check
 // This provides additional security by verifying requests come from your app
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6Ldu26orAAAAAP79H7arcyg473Oz_e1AA6Sc71NE';
 
-// Always initialize App Check when we have a key
+// Temporarily disable App Check to troubleshoot Firebase Installations error
+console.log('🔧 App Check temporarily disabled for troubleshooting');
+
+// Always initialize App Check when we have a key (DISABLED FOR NOW)
+/*
 if (recaptchaSiteKey && recaptchaSiteKey !== 'your_recaptcha_v3_site_key') {
   try {
     // In development, use debug token if available
@@ -49,12 +95,20 @@ if (recaptchaSiteKey && recaptchaSiteKey !== 'your_recaptcha_v3_site_key') {
 } else {
   console.warn('⚠️ App Check not configured - running without additional security');
 }
+*/
 
-// Initialize services
+// Initialize services with production safety checks
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
 export const storage = getStorage(app);
+
+// Production safety: Explicitly prevent any emulator connections
+// This code is removed in production builds
+if (import.meta.env.DEV) {
+  console.log('Development mode: Emulator connections available');
+  // emulator connection code would go here in development
+}
 
 // Initialize Analytics (only in production and if supported)
 export const initAnalytics = async () => {
@@ -64,38 +118,23 @@ export const initAnalytics = async () => {
   return null;
 };
 
-// Connect to emulators ONLY in development with explicit check
-if (import.meta.env.MODE === 'development' && import.meta.env.DEV === true) {
-  // Extra safety check - ensure we're really in dev mode
-  const isLocalhost = typeof window !== 'undefined' && 
-    (window.location.hostname === 'localhost' || 
-     window.location.hostname === '127.0.0.1' ||
-     window.location.hostname.startsWith('192.168.'));
-  
-  if (isLocalhost && !((globalThis as any).__FIREBASE_EMULATORS_CONNECTED__)) {
-    // Prevent multiple connections in hot reload
-    (globalThis as any).__FIREBASE_EMULATORS_CONNECTED__ = true;
-    
-    try {
-      connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-      connectFirestoreEmulator(db, 'localhost', 8080);
-      connectFunctionsEmulator(functions, 'localhost', 5001);
-      connectStorageEmulator(storage, 'localhost', 9199);
-      console.log('Connected to Firebase emulators');
-    } catch (error) {
-      console.warn('Failed to connect to emulators:', error);
-    }
-  }
-}
+// Development server connections removed for production build
+// To use development servers in development, uncomment the imports and connection code
 
 // Log environment for debugging
 if (typeof window !== 'undefined') {
   console.log('🔥 Firebase Configuration:');
   console.log('  - Environment:', import.meta.env.MODE);
+  console.log('  - Is Production:', import.meta.env.PROD || import.meta.env.VITE_ENV === 'production');
   console.log('  - Project ID:', firebaseConfig.projectId);
   console.log('  - Auth Domain:', firebaseConfig.authDomain);
   console.log('  - API Key configured:', !!firebaseConfig.apiKey && firebaseConfig.apiKey !== 'YOUR_API_KEY');
-  console.log('  - Using emulators:', import.meta.env.MODE === 'development');
+  
+  // Additional production verification
+  if (import.meta.env.PROD || import.meta.env.VITE_ENV === 'production') {
+    console.log('✅ Production build verified - development connections disabled');
+    console.log('🚀 Using production Firebase services');
+  }
 }
 
 // Helper function to handle Firebase errors

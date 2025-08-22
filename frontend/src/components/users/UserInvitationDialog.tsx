@@ -149,7 +149,7 @@ const UserInvitationDialog: React.FC<UserInvitationDialogProps> = ({
         header: true,
         complete: (results) => {
           if (results.errors.length > 0) {
-            setCsvError(`CSV parsing error: ${results.errors[0].message}`);
+            setCsvError(`CSV parsing error: ${results.errors[0]?.message || 'Unknown error'}`);
             return;
           }
 
@@ -169,7 +169,7 @@ const UserInvitationDialog: React.FC<UserInvitationDialogProps> = ({
           setBulkInvitations(invitations);
           setTabValue(1); // Switch to bulk tab
         },
-        error: (error) => {
+        error: (error: any) => {
           setCsvError(`CSV parsing error: ${error.message}`);
         },
       });
@@ -554,7 +554,7 @@ const UserInvitationDialog: React.FC<UserInvitationDialogProps> = ({
             </Box>
 
             <Paper
-              {...getRootProps()}
+              {...(getRootProps() as any)}
               sx={{
                 p: 4,
                 textAlign: 'center',

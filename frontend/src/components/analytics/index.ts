@@ -19,4 +19,4 @@ export type {
   ReportConfig,
   GeneratedReport,
   DashboardConfig
-} from '@/types/analytics';
+} from '../../types/analytics';

@@ -24,6 +24,7 @@ export function useIntersectionObserver({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
         const isCurrentlyIntersecting = entry.isIntersecting;
         setIsIntersecting(isCurrentlyIntersecting);
 

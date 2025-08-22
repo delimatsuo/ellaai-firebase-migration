@@ -7,12 +7,18 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig({
   plugins: [
     react({
-      // Enable React Fast Refresh with scheduler compatibility
-      fastRefresh: true,
       // Use automatic JSX runtime for React 18
       jsxRuntime: 'automatic',
       // Ensure proper JSX transformation
-      jsxImportSource: 'react'
+      jsxImportSource: 'react',
+      // Fix for production builds
+      babel: {
+        plugins: [
+          ['@babel/plugin-transform-react-jsx', {
+            runtime: 'automatic'
+          }]
+        ]
+      }
     }),
     // Bundle analyzer plugin for development
     process.env.ANALYZE && visualizer({
@@ -26,8 +32,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      // Critical: Ensure consistent React scheduler resolution
-      'scheduler/tracing': 'scheduler/tracing-profiling',
       // Resolve scheduler directly to prevent module resolution issues
       'scheduler': 'scheduler',
     },
@@ -51,8 +55,13 @@ export default defineConfig({
     target: 'es2020',
     terserOptions: {
       compress: {
-        drop_console: true,
-        drop_debugger: true
+        drop_console: process.env.NODE_ENV === 'production',
+        drop_debugger: true,
+        // Remove development patterns in production
+        global_defs: {
+          'import.meta.env.DEV': process.env.NODE_ENV !== 'production',
+          'import.meta.env.PROD': process.env.NODE_ENV === 'production',
+        }
       }
     },
     cssCodeSplit: true,
@@ -64,6 +73,42 @@ export default defineConfig({
     rollupOptions: {
       // Critical: Prevent external dependencies in browser builds
       external: [],
+      
+      // Build-time verification to prevent dangerous localhost references
+      plugins: [
+        {
+          name: 'verify-production-build',
+          generateBundle(options, bundle) {
+            if (process.env.NODE_ENV === 'production' || process.env.VITE_ENV === 'production') {
+              // Only check for the most critical patterns - WebSocket connections to localhost:8080
+              const criticalPatterns = [
+                new RegExp('ws://.*:8080', 'gi'), // WebSocket connections to port 8080
+                new RegExp('wss://.*:8080', 'gi'), // Secure WebSocket connections to port 8080
+              ];
+              
+              let foundCritical = false;
+              for (const fileName in bundle) {
+                const chunk = bundle[fileName];
+                if (chunk.type === 'chunk' && chunk.code) {
+                  for (const pattern of criticalPatterns) {
+                    if (pattern.test(chunk.code)) {
+                      console.error(`🚨 Production build verification failed!`);
+                      console.error(`Found critical WebSocket pattern ${pattern} in ${fileName}`);
+                      foundCritical = true;
+                    }
+                  }
+                }
+              }
+              
+              if (foundCritical) {
+                throw new Error('Production build contains WebSocket connections to localhost:8080');
+              } else {
+                console.log('✅ Production build verification passed - no WebSocket connections to localhost:8080 found');
+              }
+            }
+          }
+        }
+      ],
       
       output: {
         // Optimized manual chunking for React scheduler compatibility
@@ -150,14 +195,21 @@ export default defineConfig({
   },
   
   define: {
-    'process.env': {},
     // Critical: Ensure NODE_ENV is properly defined for React scheduler
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
     // Global flag for scheduler polyfill
     __SCHEDULER_POLYFILL_ENABLED__: JSON.stringify(true),
-    // Ensure jsxDEV is available in production
-    'import.meta.env.DEV': JSON.stringify(false),
-    'import.meta.env.PROD': JSON.stringify(true),
+    // Explicitly define all Vite environment variables to prevent runtime issues
+    'import.meta.env.VITE_FIREBASE_API_KEY': JSON.stringify(process.env.VITE_FIREBASE_API_KEY),
+    'import.meta.env.VITE_FIREBASE_AUTH_DOMAIN': JSON.stringify(process.env.VITE_FIREBASE_AUTH_DOMAIN),
+    'import.meta.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify(process.env.VITE_FIREBASE_PROJECT_ID),
+    'import.meta.env.VITE_FIREBASE_STORAGE_BUCKET': JSON.stringify(process.env.VITE_FIREBASE_STORAGE_BUCKET),
+    'import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID': JSON.stringify(process.env.VITE_FIREBASE_MESSAGING_SENDER_ID),
+    'import.meta.env.VITE_FIREBASE_APP_ID': JSON.stringify(process.env.VITE_FIREBASE_APP_ID),
+    'import.meta.env.VITE_RECAPTCHA_SITE_KEY': JSON.stringify(process.env.VITE_RECAPTCHA_SITE_KEY),
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
+    'import.meta.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL),
+    'import.meta.env.VITE_ENV': JSON.stringify(process.env.VITE_ENV || 'production'),
   },
   
   // Critical optimization for React scheduler compatibility
@@ -186,8 +238,8 @@ export default defineConfig({
       'monaco-editor',
     ],
     
-    // Force single instance of React ecosystem
-    dedupe: ['react', 'react-dom', 'scheduler'],
+    // Force single instance of React ecosystem (moved to resolve.dedupe)
+    // dedupe: ['react', 'react-dom', 'scheduler'],
     
     // Force pre-bundling to prevent runtime module resolution issues
     force: true,
@@ -203,10 +255,10 @@ export default defineConfig({
   
   // Enhanced SSR handling for better compatibility
   ssr: {
-    // Externalize scheduler for SSR
+    // Externalize scheduler for SSR  
     external: process.env.NODE_ENV === 'production' ? [] : ['scheduler'],
     
     // No external dependencies for browser builds
-    noExternal: process.env.NODE_ENV === 'production' ? true : false,
+    noExternal: process.env.NODE_ENV === 'production' ? true : [],
   },
 });

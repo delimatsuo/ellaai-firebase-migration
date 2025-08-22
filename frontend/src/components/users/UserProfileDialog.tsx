@@ -240,7 +240,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                 fontSize: '1.5rem',
               }}
             >
-              {user.displayName?.[0] || user.email[0].toUpperCase()}
+              {((user.displayName || user.email || 'U')[0] || 'U').toUpperCase()}
             </Avatar>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 'bold' }}>

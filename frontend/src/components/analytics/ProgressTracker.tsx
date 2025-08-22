@@ -40,8 +40,8 @@ import {
   Close
 } from '@mui/icons-material';
 
-import { ProgressTracking, RealTimeUpdate } from '@/types/analytics';
-import { resultsService } from '@/services/analytics/resultsService';
+import { ProgressTracking, RealTimeUpdate } from '../../types/analytics';
+import { resultsService } from '../../services/analytics/resultsService';
 
 interface ProgressTrackerProps {
   entityId: string;

@@ -66,8 +66,8 @@ import {
   AssessmentAnalytics,
   CompanyAnalytics,
   DashboardConfig 
-} from '@/types/analytics';
-import { resultsService } from '@/services/analytics/resultsService';
+} from '../../types/analytics';
+import { resultsService } from '../../services/analytics/resultsService';
 import {
   ScoreDistributionChart,
   PerformanceTrendChart,

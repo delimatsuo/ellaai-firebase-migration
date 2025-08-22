@@ -199,8 +199,8 @@ export class LoadTester {
     this.results.averageResponseTime = 
       responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
 
-    this.results.minResponseTime = responseTimes[0];
-    this.results.maxResponseTime = responseTimes[responseTimes.length - 1];
+    this.results.minResponseTime = responseTimes[0] || 0;
+    this.results.maxResponseTime = responseTimes[responseTimes.length - 1] || 0;
 
     this.results.p50ResponseTime = this.percentile(responseTimes, 50);
     this.results.p95ResponseTime = this.percentile(responseTimes, 95);
@@ -212,7 +212,7 @@ export class LoadTester {
 
   private percentile(sortedArray: number[], percentile: number): number {
     const index = Math.ceil((percentile / 100) * sortedArray.length) - 1;
-    return sortedArray[Math.max(0, index)];
+    return sortedArray[Math.max(0, index)] || 0;
   }
 }
 

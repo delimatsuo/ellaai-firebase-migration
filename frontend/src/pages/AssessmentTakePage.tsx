@@ -74,6 +74,7 @@ const AssessmentTakePage: React.FC = () => {
 
       return () => clearInterval(timer);
     }
+    return undefined;
   }, [timeRemaining]);
 
   const loadAssessment = async (assessmentId: string) => {
@@ -248,10 +249,10 @@ const AssessmentTakePage: React.FC = () => {
         {/* Question */}
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            {currentQuestion.question}
+            {currentQuestion?.question || 'Loading question...'}
           </Typography>
 
-          {currentQuestion.type === 'multiple_choice' && currentQuestion.options && (
+          {currentQuestion?.type === 'multiple_choice' && currentQuestion?.options && (
             <Box sx={{ mt: 2 }}>
               {currentQuestion.options.map((option, index) => (
                 <Box key={index} sx={{ mb: 1 }}>
@@ -268,7 +269,7 @@ const AssessmentTakePage: React.FC = () => {
             </Box>
           )}
 
-          {currentQuestion.type === 'coding' && (
+          {currentQuestion?.type === 'coding' && (
             <Box sx={{ mt: 2 }}>
               <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Code />
@@ -299,7 +300,7 @@ const AssessmentTakePage: React.FC = () => {
             </Box>
           )}
 
-          {currentQuestion.type === 'short_answer' && (
+          {currentQuestion?.type === 'short_answer' && (
             <Box sx={{ mt: 2 }}>
               <Box
                 component="textarea"
