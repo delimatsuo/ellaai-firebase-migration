@@ -43,28 +43,23 @@ export const authMiddleware = async (
 
     // Verify the Firebase ID token
     const decodedToken = await admin.auth().verifyIdToken(token, true);
-    
-    // Get additional user data from Firestore
-    const db = admin.firestore();
-    const userDoc = await db.collection('users').doc(decodedToken.uid).get();
-    
-    if (!userDoc.exists) {
-      throw new AppError('User profile not found', 404);
-    }
-    
-    const userData = userDoc.data();
+
+    // The user's role and other authorization data are stored as custom claims in the token.
+    // This is the single source of truth for authorization, consistent with Storage security rules.
+    // This avoids an extra Firestore read on every authenticated request.
+    const role = decodedToken.role || 'candidate';
     
     // Attach user information to request
     req.user = {
       ...decodedToken,
-      role: userData?.role || 'candidate',
-      companyId: userData?.companyId,
-      companyAccess: userData?.companyAccess || [],
-      supportPermissions: userData?.supportPermissions || {
-        canActAs: userData?.role === 'admin' || userData?.role === 'ella_recruiter',
-        canModifyRecords: userData?.role === 'admin',
-        allowedCompanies: userData?.role === 'admin' ? undefined : userData?.allowedSupportCompanies,
-        restrictions: userData?.supportRestrictions || []
+      role: role,
+      companyId: decodedToken.companyId,
+      companyAccess: decodedToken.companyAccess || [],
+      supportPermissions: { // Re-create permissions based on the role from the token
+        canActAs: role === 'admin' || role === 'ella_recruiter',
+        canModifyRecords: role === 'admin',
+        allowedCompanies: role === 'admin' ? undefined : decodedToken.allowedSupportCompanies,
+        restrictions: decodedToken.supportRestrictions || []
       },
       supportContext: {
         isActingAs: false, // Will be set by supportContextMiddleware

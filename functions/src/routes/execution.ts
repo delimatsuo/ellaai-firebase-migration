@@ -5,8 +5,7 @@
 
 import { Router, Response } from 'express';
 import * as joi from 'joi';
-import { AuthenticatedRequest } from '../middleware/auth';
-import { requireRole } from '../middleware/rbac';
+import { AuthenticatedRequest, requireRole } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { codeExecutionService } from '../services/codeExecutionService';
 import { logger } from '../utils/logger';
@@ -35,9 +34,6 @@ const executeCodeSchema = joi.object({
 const attemptParamSchema = joi.object({
   attemptId: joi.string().required(),
 });
-
-// All routes require authentication
-router.use(requireRole('candidate', 'system_admin', 'ella_recruiter', 'company_admin', 'recruiter', 'hiring_manager'));
 
 /**
  * Execute code against test cases

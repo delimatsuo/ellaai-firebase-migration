@@ -86,12 +86,12 @@ app.use('/api/assessments', authMiddleware, supportContextMiddleware, assessment
 app.use('/api/candidates', authMiddleware, supportContextMiddleware, candidateRoutes);
 app.use('/api/companies', authMiddleware, supportContextMiddleware, companyRoutes);
 app.use('/api/questions', authMiddleware, supportContextMiddleware, questionRoutes);
-app.use('/api/skills', skillsRoutes);
+app.use('/api/skills', authMiddleware, supportContextMiddleware, skillsRoutes);
 app.use('/api/support', authMiddleware, supportContextMiddleware, supportRoutes);
 app.use('/api/admin', authMiddleware, supportContextMiddleware, adminRoutes);
 app.use('/api/invitations', invitationRoutes); // Public routes for invitation handling
-app.use('/api/proctor', proctorRoutes); // Proctoring routes
-app.use('/api/execution', executionRoutes); // Code execution routes
+app.use('/api/proctor', authMiddleware, supportContextMiddleware, proctorRoutes); // Proctoring routes
+app.use('/api/execution', authMiddleware, supportContextMiddleware, executionRoutes); // Code execution routes
 app.use('/api/analytics', authMiddleware, supportContextMiddleware, analyticsRoutes); // Analytics routes
 
 // Error handling middleware (should be last)

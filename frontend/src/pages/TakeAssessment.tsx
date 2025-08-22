@@ -10,6 +10,7 @@ import {
   Stack,
 } from '@mui/material';
 import { ArrowBack, Security } from '@mui/icons-material';
+import DOMPurify from 'dompurify';
 import { useAuth } from '../hooks/useAuth';
 import { ProctoringSetup } from '../components/proctoring/ProctoringSetup';
 import { proctoringService } from '../services/proctoring/proctoringService';
@@ -281,7 +282,7 @@ const TakeAssessment: React.FC = () => {
                   Assessment Instructions
                 </Typography>
                 <Typography variant="body2" dangerouslySetInnerHTML={{
-                  __html: assessment.basic.instructions || 'Please read each question carefully and select the best answer.'
+                  __html: DOMPurify.sanitize(assessment.basic.instructions || 'Please read each question carefully and select the best answer.')
                 }} />
               </Alert>
 

@@ -25,11 +25,11 @@ service cloud.firestore {
     match /companies/{companyId} {
       allow read: if request.auth != null && 
         (resource.data.members[request.auth.uid] != null ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.role == 'admin' ||
          isActingAsCompany(companyId));
       allow write: if request.auth != null && 
         (resource.data.admins[request.auth.uid] == true ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.role == 'admin' ||
          isActingAsCompany(companyId));
     }
     
@@ -37,66 +37,74 @@ service cloud.firestore {
     match /assessments/{assessmentId} {
       allow read: if request.auth != null && 
         (resource.data.candidateId == request.auth.uid ||
-         resource.data.companyId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter'] ||
+         (request.auth.token.companyAccess != null && resource.data.companyId in request.auth.token.companyAccess) ||
+         request.auth.token.role in ['admin', 'recruiter'] ||
          isActingAsCompany(resource.data.companyId));
       allow write: if request.auth != null && 
         (resource.data.candidateId == request.auth.uid ||
-         resource.data.companyId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter'] ||
+         (request.auth.token.companyAccess != null && resource.data.companyId in request.auth.token.companyAccess) ||
+         request.auth.token.role in ['admin', 'recruiter'] ||
          isActingAsCompany(resource.data.companyId));
-      allow create: if request.auth != null;
+      allow create: if request.auth != null &&
+        ((request.auth.token.companyAccess != null && request.resource.data.companyId in request.auth.token.companyAccess) ||
+         request.auth.token.role in ['admin', 'recruiter']);
     }
     
     // Assessment attempts: Candidates can create and update their attempts
     match /assessment-attempts/{attemptId} {
       allow read: if request.auth != null && 
         (resource.data.candidateId == request.auth.uid ||
-         get(/databases/$(database)/documents/assessments/$(resource.data.assessmentId)).data.companyId in 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess);
+         (request.auth.token.companyAccess != null && get(/databases/$(database)/documents/assessments/$(resource.data.assessmentId)).data.companyId in
+         request.auth.token.companyAccess));
       allow create: if request.auth != null && request.resource.data.candidateId == request.auth.uid;
       allow update: if request.auth != null && resource.data.candidateId == request.auth.uid;
     }
     
-    // Questions: Read access for assessment participants
+    // Questions: Only admin/recruiter roles can read all questions.
+    // Candidates should only access questions through a specific assessment flow,
+    // which should be handled by a backend function, not direct client access.
     match /questions/{questionId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null &&
+        request.auth.token.role in ['admin', 'recruiter', 'company_admin', 'system_admin', 'ella_recruiter'];
       allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'recruiter'];
+        request.auth.token.role in ['admin', 'recruiter', 'company_admin', 'system_admin'];
     }
     
     // Skills taxonomy: Read-only for authenticated users
     match /skills/{skillId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        request.auth.token.role == 'admin';
     }
     
     // Positions/Jobs: Company-scoped access
     match /positions/{positionId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && 
-        (resource.data.companyId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyAccess ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
-      allow create: if request.auth != null;
+        ((request.auth.token.companyAccess != null && resource.data.companyId in request.auth.token.companyAccess) ||
+         request.auth.token.role == 'admin');
+      allow create: if request.auth != null &&
+        ((request.auth.token.companyAccess != null && request.resource.data.companyId in request.auth.token.companyAccess) ||
+         request.auth.token.role == 'admin');
     }
     
     // Audit logs: Admin only
     match /audit-logs/{logId} {
       allow read: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-      allow create: if request.auth != null;
+        request.auth.token.role == 'admin';
+      allow create: if request.auth != null &&
+        request.auth.token.role == 'admin';
     }
     
     // Support sessions: Admin and Ella recruiters only
     match /support-sessions/{sessionId} {
       allow read: if request.auth != null && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'ella_recruiter'] ||
+        (request.auth.token.role in ['admin', 'ella_recruiter'] ||
          resource.data.ellaRecruiterId == request.auth.uid);
       allow create: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'ella_recruiter'];
+        request.auth.token.role in ['admin', 'ella_recruiter'];
       allow update: if request.auth != null && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        (request.auth.token.role == 'admin' ||
          resource.data.ellaRecruiterId == request.auth.uid);
       allow delete: if false; // Support sessions should never be deleted
     }
@@ -104,9 +112,9 @@ service cloud.firestore {
     // Admin actions: Admin only, no modification allowed
     match /admin-actions/{actionId} {
       allow read: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        request.auth.token.role == 'admin';
       allow create: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        request.auth.token.role == 'admin';
       allow update: if false; // Admin actions are immutable
       allow delete: if false; // Admin actions should never be deleted
     }

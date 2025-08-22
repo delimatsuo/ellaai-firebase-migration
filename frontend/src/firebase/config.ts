@@ -12,69 +12,59 @@ let app: any;
 let auth: any;
 let db: any;
 
-// Check if Firebase is loaded from CDN
-if (typeof window !== 'undefined' && window.firebaseAuth) {
-  console.log('Using Firebase from CDN');
-  app = window.firebaseApp;
-  auth = window.firebaseAuth;
-  db = window.firebaseDb;
-} else {
-  console.log('Firebase not yet loaded from CDN, creating mock objects');
-  
-  // Mock implementations until CDN loads
-  app = { name: '[DEFAULT]' };
-  auth = {
-    currentUser: null,
-    onAuthStateChanged: (callback: Function) => {
-      // Wait for Firebase to load from CDN
-      const checkInterval = setInterval(() => {
-        if (window.firebaseAuth) {
-          clearInterval(checkInterval);
-          callback(window.firebaseAuth.currentUser);
-        }
-      }, 100);
-      return () => clearInterval(checkInterval);
-    },
-    signInWithEmailAndPassword: async (email: string, password: string) => {
-      // Wait for Firebase to load
-      while (!window.firebaseAuth) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      return window.firebaseAuth.signInWithEmailAndPassword(email, password);
-    },
-    createUserWithEmailAndPassword: async (email: string, password: string) => {
-      while (!window.firebaseAuth) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      return window.firebaseAuth.createUserWithEmailAndPassword(email, password);
-    },
-    signOut: async () => {
-      if (window.firebaseAuth) {
-        return window.firebaseAuth.signOut();
-      }
-      return Promise.resolve();
-    }
-  };
-  db = {
-    collection: (name: string) => ({
-      doc: (id: string) => ({
-        get: async () => {
-          while (!window.firebaseDb) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
-          return window.firebaseDb.collection(name).doc(id).get();
-        },
-        set: async (data: any) => {
-          while (!window.firebaseDb) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
-          return window.firebaseDb.collection(name).doc(id).set(data);
-        }
-      })
-    })
-  };
-}
+/**
+ * A promise that resolves when Firebase is initialized from the CDN.
+ * This is the core of the fix to the race condition.
+ */
+const firebaseInitializationPromise = new Promise<void>((resolve, reject) => {
+  const timeout = 10000; // 10-second timeout for initialization
+  const interval = 50; // Check every 50ms
+  let elapsedTime = 0;
 
-export { auth, db };
-export const analytics = null;
+  const checkInterval = setInterval(() => {
+    // Wait for the Firebase global object to be available from the CDN script
+    if (typeof window !== 'undefined' && window.firebase) {
+      clearInterval(checkInterval);
+
+      // Initialize Firebase only if it hasn't been initialized already
+      if (!window.firebase.apps.length) {
+        console.log('Initializing Firebase app...');
+        const firebaseConfig = {
+          apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+          authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+          projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+          storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+          messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+          appId: import.meta.env.VITE_FIREBASE_APP_ID,
+        };
+        window.firebase.initializeApp(firebaseConfig);
+      } else {
+        console.log('Firebase app already initialized.');
+      }
+
+      // Assign the services from the global window object
+      app = window.firebase.app();
+      auth = window.firebase.auth();
+      db = window.firebase.firestore();
+
+      console.log('Firebase services are ready.');
+      resolve();
+    } else {
+      elapsedTime += interval;
+      if (elapsedTime >= timeout) {
+        clearInterval(checkInterval);
+        console.error('Firebase CDN script loading timed out.');
+        reject(new Error('Firebase CDN script loading timed out.'));
+      }
+    }
+  }, interval);
+});
+
+
+// Export the promise and the (currently uninitialized) services.
+// The application's entry point (`main.tsx`) will await the promise,
+// ensuring that `auth` and `db` are populated before the app renders.
+export { app, auth, db, firebaseInitializationPromise };
+
+// The default export is maintained for compatibility.
 export default app;

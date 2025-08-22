@@ -6,8 +6,7 @@
 import { Router, Request, Response } from 'express';
 import * as joi from 'joi';
 import { proctoringService } from '../services/proctorService';
-import { authMiddleware, AuthenticatedRequest } from '../middleware/auth';
-import { requireRole } from '../middleware/rbac';
+import { authMiddleware, AuthenticatedRequest, requireRole } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { logger } from '../utils/logger';
 
@@ -40,7 +39,7 @@ router.use(authMiddleware);
  * POST /api/proctor/sessions
  */
 router.post('/sessions', 
-  requireRole('system_admin', 'ella_recruiter', 'company_admin', 'recruiter', 'hiring_manager'),
+  requireRole(['system_admin', 'ella_recruiter', 'company_admin', 'recruiter', 'hiring_manager']),
   validateRequest(createSessionSchema, 'body'),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -79,7 +78,7 @@ router.post('/sessions',
  * GET /api/proctor/sessions/:sessionId
  */
 router.get('/sessions/:sessionId',
-  requireRole('system_admin', 'ella_recruiter', 'company_admin', 'recruiter', 'hiring_manager'),
+  requireRole(['system_admin', 'ella_recruiter', 'company_admin', 'recruiter', 'hiring_manager']),
   validateRequest(sessionParamSchema, 'params'),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -111,7 +110,7 @@ router.get('/sessions/:sessionId',
  * POST /api/proctor/sessions/:sessionId/complete
  */
 router.post('/sessions/:sessionId/complete',
-  requireRole('system_admin', 'ella_recruiter', 'company_admin', 'recruiter', 'hiring_manager', 'candidate'),
+  requireRole(['system_admin', 'ella_recruiter', 'company_admin', 'recruiter', 'hiring_manager', 'candidate']),
   validateRequest(sessionParamSchema, 'params'),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -141,7 +140,7 @@ router.post('/sessions/:sessionId/complete',
  * POST /api/proctor/tokens
  */
 router.post('/tokens',
-  requireRole('system_admin', 'ella_recruiter', 'company_admin', 'recruiter', 'hiring_manager', 'candidate'),
+  requireRole(['system_admin', 'ella_recruiter', 'company_admin', 'recruiter', 'hiring_manager', 'candidate']),
   validateRequest(tokenRequestSchema, 'body'),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
